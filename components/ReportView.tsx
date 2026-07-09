@@ -35,8 +35,16 @@ type Block = {
 function BrandTop() {
   return <div className="page-brand-top no-print-hide">어바웃심리상담센터</div>;
 }
-function BrandBottom() {
-  return <div className="page-brand-bottom no-print-hide">어바웃심리상담센터 · aboutcounsel.com</div>;
+function PageFooter({ current, total }: { current: number; total: number }) {
+  return (
+    <div className="page-footer">
+      <div className="page-footer-line" />
+      <div className="page-footer-row">
+        <span className="page-footer-brand">어바웃심리상담센터 · aboutcounsel.com</span>
+        <span className="page-footer-num">{current} / {total}</span>
+      </div>
+    </div>
+  );
 }
 
 export default function ReportView({
@@ -174,18 +182,16 @@ export default function ReportView({
       {allPages.map((pageBlocks, pageIdx) => {
         const isSolo = pageBlocks.length === 1 && pageIdx !== 0 && !isLastPage(pageIdx);
         return (
-        <section className={`report-page ${isSolo ? "page-center" : ""}`} key={pageIdx}>
+        <section className="report-page" key={pageIdx}>
           <BrandTop />
-          {pageIdx === 0 && (
-            <header className="report-masthead">
-              <h2>심리검사 통합 해석 보고서</h2>
-              <div className="meta">
-                {client.name || "비공개"} · {client.gender || "-"} · 만 {client.age || "-"}세 · {isCounselor ? "상담자용" : "내담자용"}
-              </div>
-            </header>
-          )}
+          <header className="report-masthead">
+            <h2>심리검사 통합 해석 보고서</h2>
+            <div className="meta">
+              {client.name || "비공개"} · {client.gender || "-"} · 만 {client.age || "-"}세 · {isCounselor ? "상담자용" : "내담자용"}
+            </div>
+          </header>
 
-          <div className="page-content">
+          <div className={`page-content ${isSolo ? "page-content-center" : ""}`}>
             {pageBlocks.map((block) => (
               <div key={block.key} className="report-block">
                 <div className="report-section-title">
@@ -220,7 +226,7 @@ export default function ReportView({
             </div>
           )}
 
-          <BrandBottom />
+          <PageFooter current={pageIdx + 1} total={allPages.length} />
         </section>
         );
       })}

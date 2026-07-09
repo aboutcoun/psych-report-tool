@@ -326,15 +326,21 @@ html, body {
 .report-page {
   background: #fff;
   border: 1px solid var(--line);
-  padding: 40px 46px 54px;
+  padding: 40px 46px 60px;
   margin-bottom: 24px;
   min-height: 297mm;
   width: 210mm;
   max-width: 100%;
   position: relative;
+  display: flex;
+  flex-direction: column;
 }
 
-.report-page.page-center {
+.page-content {
+  flex: 1;
+}
+
+.page-content-center {
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -382,15 +388,35 @@ html, body {
   letter-spacing: 0.03em;
 }
 
-.page-brand-bottom {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 16px;
-  text-align: center;
+/* ── 꼬리말: 장식선 + 브랜드 + 페이지 번호 ───────────────── */
+.page-footer {
+  margin-top: 20px;
+}
+
+.page-footer-line {
+  height: 3px;
+  background: linear-gradient(to right, var(--accent) 0%, var(--accent) 40%, var(--line) 40%, var(--line) 100%);
+  margin-bottom: 8px;
+  border-radius: 2px;
+}
+
+.page-footer-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.page-footer-brand {
   font-size: 9.5px;
   color: var(--ink-soft);
   letter-spacing: 0.02em;
+}
+
+.page-footer-num {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.04em;
 }
 
 .report-masthead {
