@@ -51,8 +51,13 @@ export interface ReportSection {
   integration_recommendations: string;    // 항상 포함 (통합 해석 및 제언)
 }
 
+export interface CounselorPoint {
+  title: string;  // 포인트 소제목 (예: "라포 형성 시 유의점")
+  detail: string; // 그 포인트에 대한 풍성한 설명
+}
+
 export interface CounselorSection extends ReportSection {
-  counselor_notes: string; // 상담 전략, 라포 형성, 예상 저항 등 상담자 참고사항
+  counselor_notes: CounselorPoint[]; // 상담 전략, 라포 형성, 예상 저항 등을 개조식 포인트로 정리
 }
 
 export interface ReportResult {

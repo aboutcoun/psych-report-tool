@@ -334,6 +334,45 @@ html, body {
   position: relative;
 }
 
+.report-page.page-center {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.report-block {
+  page-break-inside: avoid;
+}
+
+/* ── 상담자 참고사항: 개조식 포인트 카드 ───────────────── */
+.counselor-points {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.counselor-point {
+  border-left: 3px solid var(--accent);
+  background: var(--accent-soft);
+  border-radius: 0 6px 6px 0;
+  padding: 10px 14px;
+}
+
+.counselor-point-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+
+.counselor-point-detail {
+  font-size: 13px;
+  color: var(--ink);
+  line-height: 1.6;
+  margin: 0;
+}
+
 .page-brand-top {
   position: absolute;
   top: 14px;
@@ -418,8 +457,10 @@ html, body {
     min-height: 297mm;
     page-break-after: always;
   }
-  /* 파트별 강제 개행은 넣지 않음 — 내용이 길어 한 장을 넘기면
-     자연스럽게 다음 장으로 흐르게 두어야 여분의 빈 페이지가 생기지 않음 */
+  /* 각 파트는 정확히 새 페이지에서 시작 (표지 다음 페이지부터) */
+  .report-page + .report-page {
+    page-break-before: always;
+  }
   /* 그래프+해당 문단은 최대한 한 페이지 안에서 끊기지 않도록 (강제는 아님) */
   .chart-wrap, .report-body-text {
     page-break-inside: avoid;

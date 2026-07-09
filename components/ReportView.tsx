@@ -125,17 +125,14 @@ export default function ReportView({
     roman: ROMAN[partBlocks.length],
   };
 
-  // ── 페이지 그룹핑: 1p = 도입부+첫 파트 / 2p~ = 나머지 파트 2개씩 / 마지막 = 통합 ──
+  // ── 페이지 구성: 1p = 도입부+첫 파트 / 이후 각 파트마다 1페이지씩 / 마지막 = 종합소견 ──
+  const page1: Block[] = [...introBlocks];
   const remaining = [...partBlocks];
-  const firstPageParts: Block[] = remaining.length > 0 ? [remaining.shift()!] : [];
-  const page1: Block[] = [...introBlocks, ...firstPageParts];
+  if (remaining.length > 0) page1.push(remaining.shift()!);
 
-  const middlePages: Block[][] = [];
-  while (remaining.length > 0) {
-    middlePages.push(remaining.splice(0, 2));
-  }
+  const soloPages: Block[][] = remaining.map((b) => [b]);
 
-  const allPages: Block[][] = [page1, ...middlePages, [integrationBlock]];
+  const allPages: Block[][] = [page1, ...soloPages, [integrationBlock]];
   const isLastPage = (i: number) => i === allPages.length - 1;
 
   return (
@@ -174,8 +171,10 @@ export default function ReportView({
         <div className="cover-brand">어바웃심리상담센터 · aboutcounsel.com</div>
       </section>
 
-      {allPages.map((pageBlocks, pageIdx) => (
-        <section className="report-page" key={pageIdx}>
+      {allPages.map((pageBlocks, pageIdx) => {
+        const isSolo = pageBlocks.length === 1 && pageIdx !== 0 && !isLastPage(pageIdx);
+        return (
+        <section className={`report-page ${isSolo ? "page-center" : ""}`} key={pageIdx}>
           <BrandTop />
           {pageIdx === 0 && (
             <header className="report-masthead">
@@ -186,24 +185,33 @@ export default function ReportView({
             </header>
           )}
 
-          {pageBlocks.map((block) => (
-            <div key={block.key}>
-              <div className="report-section-title">
-                {block.roman ? `Part ${block.roman}. ${block.title}` : block.title}
+          <div className="page-content">
+            {pageBlocks.map((block) => (
+              <div key={block.key} className="report-block">
+                <div className="report-section-title">
+                  {block.roman ? `Part ${block.roman}. ${block.title}` : block.title}
+                </div>
+                {block.charts}
+                <p className="report-body-text">{block.body}</p>
               </div>
-              {block.charts}
-              <p className="report-body-text">{block.body}</p>
-            </div>
-          ))}
+            ))}
 
-          {isLastPage(pageIdx) && isCounselor && (
-            <>
-              <div className="report-section-title">상담자 참고사항</div>
-              <p className="report-body-text">{(section as CounselorSection).counselor_notes}</p>
-            </>
-          )}
+            {isLastPage(pageIdx) && isCounselor && (
+              <div className="report-block">
+                <div className="report-section-title">상담자 참고사항</div>
+                <div className="counselor-points">
+                  {(section as CounselorSection).counselor_notes.map((pt, i) => (
+                    <div className="counselor-point" key={i}>
+                      <div className="counselor-point-title">{i + 1}. {pt.title}</div>
+                      <p className="counselor-point-detail">{pt.detail}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
-          {isLastPage(pageIdx) && <NextStepsInfographic />}
+            {isLastPage(pageIdx) && <NextStepsInfographic />}
+          </div>
 
           {isLastPage(pageIdx) && (
             <div className="report-disclaimer">
@@ -214,7 +222,8 @@ export default function ReportView({
 
           <BrandBottom />
         </section>
-      ))}
+        );
+      })}
     </div>
   );
 }
