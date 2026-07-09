@@ -114,6 +114,33 @@ export default function Home() {
     return () => window.removeEventListener("beforeunload", handler);
   }, [mmpiEnabled, tciEnabled, sctEnabled, result]);
 
+  function handleReset() {
+    if (!window.confirm("입력한 모든 내용을 초기화할까요? 이 작업은 되돌릴 수 없습니다.")) return;
+
+    setClient({ name: "", gender: "", age: "", testDate: "" });
+    setMmpiEnabled(false);
+    setTciEnabled(false);
+    setSctEnabled(false);
+    setValidity(initScores(MMPI_VALIDITY));
+    setTrinText("50T");
+    setClinical(initScores(MMPI_CLINICAL));
+    setRc(initScores(MMPI_RC));
+    setPsy5(initScores(MMPI_PSY5));
+    setContent(initScores(MMPI_CONTENT));
+    setSupplementary(initScores(MMPI_SUPPLEMENTARY));
+    setTemperament(initScores(TCI_TEMPERAMENT));
+    setCharacter(initScores(TCI_CHARACTER));
+    setSctResponses({});
+    setError(null);
+    setLastSavedAt(null);
+
+    try {
+      localStorage.removeItem(DRAFT_KEY);
+    } catch {
+      // 무시
+    }
+  }
+
   function makeSetter(setter: (v: Record<string, number>) => void, current: Record<string, number>) {
     return (key: string, value: number) => setter({ ...current, [key]: value });
   }
@@ -226,7 +253,10 @@ export default function Home() {
       </div>
 
       <div className="test-select-box no-print">
-        <div className="test-select-label">실시한 검사</div>
+        <div className="test-select-row">
+          <div className="test-select-label">실시한 검사</div>
+          <button type="button" className="reset-link-btn" onClick={handleReset}>전체 초기화</button>
+        </div>
         <div className="test-toggle-group">
           <button
             type="button"

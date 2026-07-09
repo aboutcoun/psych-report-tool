@@ -158,6 +158,31 @@ html, body {
   margin-bottom: 10px;
 }
 
+.test-select-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.test-select-row .test-select-label {
+  margin-bottom: 0;
+}
+
+.reset-link-btn {
+  border: none;
+  background: none;
+  color: var(--ink-soft);
+  font-size: 12px;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+}
+
+.reset-link-btn:hover {
+  color: var(--warn);
+}
+
 .test-toggle-group {
   display: flex;
   gap: 10px;
