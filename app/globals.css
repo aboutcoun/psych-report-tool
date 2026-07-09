@@ -451,10 +451,16 @@ html, body {
   .report-page {
     box-shadow: none;
     border: none;
-    margin: 0 0 12px 0;
+    margin: 0;
+    /* 화면 미리보기용 고정 mm 크기를 인쇄용으로 해제.
+       브라우저가 실제로 잡아준 인쇄 가능 영역에 맞춰 채우도록 함
+       (고정 210mm/297mm를 그대로 쓰면, 인쇄창 여백 설정이 "기본값"일 때
+        실제 인쇄 영역보다 커져서 페이지가 밀리고 잘리는 문제가 생김) */
+    width: auto;
+    min-height: 0;
+    max-width: none;
   }
   .cover-page {
-    min-height: 297mm;
     page-break-after: always;
   }
   /* 각 파트는 정확히 새 페이지에서 시작 (표지 다음 페이지부터) */
