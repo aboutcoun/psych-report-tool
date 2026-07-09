@@ -85,7 +85,7 @@ export default function ReportView({
     });
     partBlocks.push({
       key: "temperament",
-      title: "타고난 기질과 성격적 특성",
+      title: "기질/성격적 특성",
       body: section.temperament_character_summary,
       charts: (
         <>
@@ -102,7 +102,7 @@ export default function ReportView({
   if (mmpi.enabled) {
     partBlocks.push({
       key: "symptom",
-      title: "지금 겪고 있는 심리적 어려움",
+      title: "심리적 어려움/증상",
       body: section.symptom_summary,
       charts: (
         <>
@@ -120,7 +120,7 @@ export default function ReportView({
 
   const integrationBlock: Block = {
     key: "integration",
-    title: "통합 해석 및 제언",
+    title: "종합 소견",
     body: section.integration_recommendations,
     roman: ROMAN[partBlocks.length],
   };

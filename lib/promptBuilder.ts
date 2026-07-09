@@ -111,7 +111,7 @@ MMPI 임상척도와 재구성임상척도(RC)를 근거로 핵심 가설(내담
   if (tci.enabled) partLines.push("- 성격적 성숙도: TCI SC 기준 판정 결과");
   if (tci.enabled) partLines.push("- 기질/성격적 특성: TCI 결과 기반 타고난 기질과 성격");
   if (mmpi.enabled) partLines.push("- 증상/심리적 고통: MMPI 기반 심리적 어려움" + (tci.enabled ? ", 성격적 성숙도 판정과 연결지어 설명" : ""));
-  partLines.push("- 통합 해석 및 제언: 실시한 검사들을 아우르는 종합적 이해와 상담 방향 제안 (client 버전은 다양한 도움 방식을 폭넓게 제시하고 특정 기법 하나만 반복하지 말 것)");
+  partLines.push("- 종합 소견: 실시한 검사들을 아우르는 종합적 이해와 상담 방향 제안 (client 버전은 다양한 도움 방식을 폭넓게 제시하고 특정 기법 하나만 반복하지 말 것)");
 
   // 출력 스키마 동적 구성
   const clientFields: string[] = [];
@@ -130,7 +130,7 @@ MMPI 임상척도와 재구성임상척도(RC)를 근거로 핵심 가설(내담
     clientFields.push(`"symptom_summary": "증상/심리적 고통 (650자 내외)"`);
     counselorFields.push(`"symptom_summary": "핵심가설-검증 구조에 따른 증상 분석 (750자 내외)"`);
   }
-  clientFields.push(`"integration_recommendations": "통합 해석 및 제언 (600자 내외)"`);
+  clientFields.push(`"integration_recommendations": "종합 소견 (600자 내외)"`);
   counselorFields.push(`"integration_recommendations": "통합 해석 및 감별 포인트 (650자 내외)"`);
   counselorFields.push(`"counselor_notes": "상담 전략, 라포 형성, 예상 저항, 유의사항 (550자 내외)"`);
 

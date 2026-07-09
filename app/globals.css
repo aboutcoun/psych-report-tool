@@ -530,20 +530,6 @@ html, body {
   text-align: center;
 }
 
-.next-steps-badge {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  background: var(--accent);
-  color: #fff;
-  font-size: 15px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 10px;
-}
-
 .next-steps-label {
   font-size: 13px;
   font-weight: 700;

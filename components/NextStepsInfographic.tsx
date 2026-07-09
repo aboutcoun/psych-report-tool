@@ -14,7 +14,6 @@ export default function NextStepsInfographic() {
       <div className="next-steps-row">
         {STEPS.map((s) => (
           <div className="next-steps-card" key={s.label}>
-            <div className="next-steps-badge">{s.label[0]}</div>
             <div className="next-steps-label">{s.label}</div>
             <div className="next-steps-desc">
               {s.desc.split("\n").map((line, i) => (
