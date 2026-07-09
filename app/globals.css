@@ -190,6 +190,63 @@ html, body {
   background: #fff;
 }
 
+.autosave-note {
+  font-size: 11.5px;
+  color: var(--ink-soft);
+  text-align: right;
+  margin-bottom: 6px;
+}
+
+/* ── 제출 전 확인 모달 ───────────────────── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(28, 36, 48, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  padding: 20px;
+}
+
+.modal-box {
+  background: #fff;
+  border-radius: 10px;
+  padding: 26px 28px;
+  max-width: 420px;
+  width: 100%;
+  box-shadow: 0 12px 32px rgba(0,0,0,0.18);
+}
+
+.modal-box h3 {
+  margin: 0 0 14px;
+  font-size: 17px;
+}
+
+.modal-checklist {
+  margin: 0 0 14px;
+  padding-left: 18px;
+  font-size: 13.5px;
+  color: var(--ink-soft);
+  line-height: 1.7;
+}
+
+.modal-warning {
+  padding: 10px 12px;
+  background: #fdecea;
+  border: 1px solid var(--warn);
+  color: var(--warn);
+  border-radius: 6px;
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
 .sct-toggle {
   display: flex;
   align-items: center;
@@ -269,11 +326,32 @@ html, body {
 .report-page {
   background: #fff;
   border: 1px solid var(--line);
-  padding: 40px 46px;
+  padding: 40px 46px 54px;
   margin-bottom: 24px;
   min-height: 297mm;
   width: 210mm;
   max-width: 100%;
+  position: relative;
+}
+
+.page-brand-top {
+  position: absolute;
+  top: 14px;
+  right: 20px;
+  font-size: 9.5px;
+  color: var(--ink-soft);
+  letter-spacing: 0.03em;
+}
+
+.page-brand-bottom {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 16px;
+  text-align: center;
+  font-size: 9.5px;
+  color: var(--ink-soft);
+  letter-spacing: 0.02em;
 }
 
 .report-masthead {
@@ -424,6 +502,59 @@ html, body {
   font-weight: 600;
   color: var(--accent);
   letter-spacing: 0.02em;
+}
+
+/* ── 마지막 페이지 인포그래픽 ───────────────────── */
+.next-steps-wrap {
+  margin-top: 26px;
+}
+
+.next-steps-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 14px;
+}
+
+.next-steps-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+.next-steps-card {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 16px 14px;
+  background: var(--accent-soft);
+  text-align: center;
+}
+
+.next-steps-badge {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 10px;
+}
+
+.next-steps-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+
+.next-steps-desc {
+  font-size: 11.5px;
+  color: var(--ink-soft);
+  line-height: 1.5;
 }
 
 /* ── 내담자용/상담자용 토글 ───────────────────── */

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import ScoreGroup from "@/components/ScoreGroup";
 import ReportView from "@/components/ReportView";
 import {
@@ -8,6 +8,8 @@ import {
   TCI_TEMPERAMENT, TCI_CHARACTER, SCT_ITEMS, ScaleDef,
 } from "@/lib/scales";
 import { ClientInfo, MmpiInput, TciInput, SctInput, ReportResult, TrinInput } from "@/lib/types";
+
+const DRAFT_KEY = "psych-report-tool:draft:v1";
 
 function initScores(defs: ScaleDef[], defaultVal = 50): Record<string, number> {
   const out: Record<string, number> = {};
@@ -50,27 +52,111 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ReportResult | null>(null);
 
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
+  const hydrated = useRef(false);
+
+  // ── 임시저장 불러오기 (최초 1회) ──────────────────────────
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(DRAFT_KEY);
+      if (raw) {
+        const d = JSON.parse(raw);
+        if (d.client) setClient(d.client);
+        if (typeof d.mmpiEnabled === "boolean") setMmpiEnabled(d.mmpiEnabled);
+        if (typeof d.tciEnabled === "boolean") setTciEnabled(d.tciEnabled);
+        if (typeof d.sctEnabled === "boolean") setSctEnabled(d.sctEnabled);
+        if (d.validity) setValidity(d.validity);
+        if (d.trinText) setTrinText(d.trinText);
+        if (d.clinical) setClinical(d.clinical);
+        if (d.rc) setRc(d.rc);
+        if (d.psy5) setPsy5(d.psy5);
+        if (d.content) setContent(d.content);
+        if (d.supplementary) setSupplementary(d.supplementary);
+        if (d.temperament) setTemperament(d.temperament);
+        if (d.character) setCharacter(d.character);
+        if (d.sctResponses) setSctResponses(d.sctResponses);
+        if (d.savedAt) setLastSavedAt(d.savedAt);
+      }
+    } catch {
+      // 손상된 임시저장은 무시
+    } finally {
+      hydrated.current = true;
+    }
+  }, []);
+
+  // ── 입력값이 바뀔 때마다 자동 임시저장 ────────────────────
+  useEffect(() => {
+    if (!hydrated.current) return; // 불러오기 완료 전에는 덮어쓰지 않음
+    const savedAt = new Date().toLocaleTimeString("ko-KR");
+    const draft = {
+      client, mmpiEnabled, tciEnabled, sctEnabled,
+      validity, trinText, clinical, rc, psy5, content, supplementary,
+      temperament, character, sctResponses, savedAt,
+    };
+    try {
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+      setLastSavedAt(savedAt);
+    } catch {
+      // 저장 공간 부족 등은 조용히 무시
+    }
+  }, [client, mmpiEnabled, tciEnabled, sctEnabled, validity, trinText, clinical, rc, psy5, content, supplementary, temperament, character, sctResponses]);
+
+  // ── 실수로 창을 닫는 것 방지 ─────────────────────────────
+  useEffect(() => {
+    function handler(e: BeforeUnloadEvent) {
+      if ((mmpiEnabled || tciEnabled || sctEnabled) && !result) {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    }
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [mmpiEnabled, tciEnabled, sctEnabled, result]);
+
   function makeSetter(setter: (v: Record<string, number>) => void, current: Record<string, number>) {
     return (key: string, value: number) => setter({ ...current, [key]: value });
   }
 
-  async function handleSubmit() {
+  function isAllDefault(scores: Record<string, number>, def = 50) {
+    return Object.values(scores).every((v) => v === def);
+  }
+
+  // 실수로 아직 입력 안 한 것처럼 보이는 검사가 있는지 체크
+  const suspiciouslyEmpty: string[] = [];
+  if (mmpiEnabled) {
+    const allDefault =
+      isAllDefault(validity) && isAllDefault(clinical) && isAllDefault(rc) &&
+      isAllDefault(psy5) && isAllDefault(content) && isAllDefault(supplementary);
+    if (allDefault) suspiciouslyEmpty.push("MMPI-2");
+  }
+  if (tciEnabled) {
+    if (isAllDefault(temperament) && isAllDefault(character)) suspiciouslyEmpty.push("TCI");
+  }
+
+  function openConfirm() {
     setError(null);
 
     if (!mmpiEnabled && !tciEnabled) {
       setError('"실시한 검사"에서 MMPI-2와 TCI 중 최소 하나는 선택해야 보고서를 생성할 수 있습니다.');
       return;
     }
-
     const trin = parseTrin(trinText);
     if (mmpiEnabled && !trin) {
       setError('TRIN 입력 형식이 올바르지 않습니다. "66T" 또는 "55F"처럼 숫자 뒤에 T 또는 F를 붙여 입력해주세요.');
       return;
     }
+    setShowConfirm(true);
+  }
+
+  async function handleSubmit() {
+    setShowConfirm(false);
+    setError(null);
+    const trin = parseTrin(trinText) || { value: 50, direction: "T" as const };
 
     setLoading(true);
     try {
-      const mmpi: MmpiInput = { enabled: mmpiEnabled, validity, trin: trin || { value: 50, direction: "T" }, clinical, rc, psy5, content, supplementary };
+      const mmpi: MmpiInput = { enabled: mmpiEnabled, validity, trin, clinical, rc, psy5, content, supplementary };
       const tci: TciInput = { enabled: tciEnabled, temperament, character };
       const sct: SctInput = { enabled: sctEnabled, responses: sctResponses };
 
@@ -273,10 +359,36 @@ export default function Home() {
       {error && <div className="error-box no-print">{error}</div>}
 
       <div className="submit-bar no-print">
-        <button className="btn-primary" onClick={handleSubmit} disabled={loading}>
+        {lastSavedAt && <div className="autosave-note">임시 저장됨 · {lastSavedAt}</div>}
+        <button className="btn-primary" onClick={openConfirm} disabled={loading}>
           {loading ? "보고서 생성 중… (약 20~40초 소요)" : "통합 해석 보고서 생성"}
         </button>
       </div>
+
+      {showConfirm && (
+        <div className="modal-overlay no-print" onClick={() => setShowConfirm(false)}>
+          <div className="modal-box" onClick={(e) => e.stopPropagation()}>
+            <h3>이대로 보고서를 생성할까요?</h3>
+            <ul className="modal-checklist">
+              <li>실시 검사: {[mmpiEnabled && "MMPI-2", tciEnabled && "TCI", sctEnabled && "SCT"].filter(Boolean).join(", ") || "없음"}</li>
+              <li>이름: {client.name || "(미입력)"}</li>
+            </ul>
+
+            {suspiciouslyEmpty.length > 0 && (
+              <div className="modal-warning">
+                ⚠ {suspiciouslyEmpty.join(", ")} 점수가 전부 기본값(50)으로 남아있어요. 아직 입력을 안 하신 건 아닌지 확인해보세요.
+              </div>
+            )}
+
+            <div className="modal-actions">
+              <button className="btn-secondary" onClick={() => setShowConfirm(false)}>다시 확인하기</button>
+              <button className="btn-primary" style={{ width: "auto", padding: "10px 20px" }} onClick={handleSubmit}>
+                네, 생성할게요
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
