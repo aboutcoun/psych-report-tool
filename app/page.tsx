@@ -206,8 +206,11 @@ export default function Home() {
       }
       const record = data.result;
       setSctResponses(record.responses || {});
+      const submittedDate = new Date(record.submittedAt);
+      const yyyyMmDd = `${submittedDate.getFullYear()}-${String(submittedDate.getMonth() + 1).padStart(2, "0")}-${String(submittedDate.getDate()).padStart(2, "0")}`;
+      setClient((prev) => ({ ...prev, testDate: yyyyMmDd }));
       setSctLookupInfo(
-        `불러왔습니다 · ${record.name} · ${record.gender || "-"} · 만 ${record.age || "-"}세 · 제출일 ${new Date(record.submittedAt).toLocaleString("ko-KR")}`
+        `불러왔습니다 · ${record.name} · ${record.gender || "-"} · 만 ${record.age || "-"}세 · 제출일 ${new Date(record.submittedAt).toLocaleString("ko-KR")} (위 인적사항의 검사일에 반영했어요)`
       );
     } catch (e: any) {
       setSctLookupError(e?.message || "네트워크 오류가 발생했습니다.");
