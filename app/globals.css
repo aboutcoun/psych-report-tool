@@ -298,6 +298,40 @@ html, body {
   margin-bottom: 6px;
 }
 
+.progress-wrap {
+  margin-bottom: 12px;
+}
+
+.progress-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+.progress-track {
+  height: 8px;
+  border-radius: 4px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 4px;
+  transition: width 0.4s ease;
+}
+
+.progress-hint {
+  margin-top: 8px;
+  font-size: 11.5px;
+  color: var(--ink-soft);
+  text-align: center;
+}
+
 /* ── 제출 전 확인 모달 ───────────────────── */
 .modal-overlay {
   position: fixed;

@@ -53,6 +53,8 @@ export default function Home() {
   const [sctLookupInfo, setSctLookupInfo] = useState<string | null>(null);
 
   const [loading, setLoading] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [progressLabel, setProgressLabel] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ReportResult | null>(null);
 
@@ -117,6 +119,41 @@ export default function Home() {
     window.addEventListener("beforeunload", handler);
     return () => window.removeEventListener("beforeunload", handler);
   }, [mmpiEnabled, tciEnabled, sctEnabled, result]);
+
+  // ── 생성 중 가상 진행률 표시 (실제 진행률을 알 수 없어 추정치로 채워줌) ──
+  useEffect(() => {
+    if (!loading) {
+      setProgress(0);
+      setProgressLabel("");
+      return;
+    }
+
+    const stages = [
+      { at: 0, label: "검사 결과를 분석하고 있어요" },
+      { at: 30, label: "내담자용 해석을 작성하고 있어요" },
+      { at: 60, label: "상담자용 해석을 작성하고 있어요" },
+      { at: 85, label: "보고서를 정리하고 있어요" },
+    ];
+
+    setProgress(2);
+    setProgressLabel(stages[0].label);
+
+    const interval = setInterval(() => {
+      setProgress((prev) => {
+        // 92%까지는 서서히, 그 이후는 실제 응답이 올 때까지 대기
+        if (prev >= 92) return prev;
+        const next = prev + (92 - prev) * 0.05 + 0.4;
+        const capped = Math.min(next, 92);
+
+        const stage = [...stages].reverse().find((s) => capped >= s.at);
+        if (stage) setProgressLabel(stage.label);
+
+        return capped;
+      });
+    }, 400);
+
+    return () => clearInterval(interval);
+  }, [loading]);
 
   function handleReset() {
     if (!window.confirm("입력한 모든 내용을 초기화할까요? 이 작업은 되돌릴 수 없습니다.")) return;
@@ -452,9 +489,21 @@ export default function Home() {
       {error && <div className="error-box no-print">{error}</div>}
 
       <div className="submit-bar no-print">
-        {lastSavedAt && <div className="autosave-note">임시 저장됨 · {lastSavedAt}</div>}
+        {lastSavedAt && !loading && <div className="autosave-note">임시 저장됨 · {lastSavedAt}</div>}
+        {loading && (
+          <div className="progress-wrap">
+            <div className="progress-label">
+              <span>{progressLabel || "생성 중이에요"}</span>
+              <span>{Math.round(progress)}%</span>
+            </div>
+            <div className="progress-track">
+              <div className="progress-fill" style={{ width: `${progress}%` }} />
+            </div>
+            <div className="progress-hint">보통 40~50초 정도 걸려요. 이 화면을 벗어나지 말고 잠시만 기다려주세요.</div>
+          </div>
+        )}
         <button className="btn-primary" onClick={openConfirm} disabled={loading}>
-          {loading ? "보고서 생성 중… (약 10~25초 소요)" : "통합 해석 보고서 생성"}
+          {loading ? "보고서 생성 중…" : "통합 해석 보고서 생성"}
         </button>
       </div>
 
