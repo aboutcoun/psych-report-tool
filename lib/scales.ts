@@ -112,7 +112,22 @@ export const TCI_CHARACTER_KO: Record<string, string> = {
   SC: "자율성+연대감",
 };
 
-// ── SCT (문장완성검사, 일반용 50문항) ────────────────────────────────
+// SCT 문항의 영역별 분류 (상담자용 보고서에서 영역별로 응답을 묶어 제시할 때 사용)
+export const SCT_DOMAINS: { label: string; items: number[] }[] = [
+  { label: "가족", items: [12, 24, 35, 48] },
+  { label: "아버지", items: [2, 19, 29, 50] },
+  { label: "어머니", items: [13, 26, 39, 49] },
+  { label: "남자", items: [8, 20, 36] },
+  { label: "여자", items: [9, 25] },
+  { label: "성, 이성, 결혼", items: [10, 23, 37, 47] },
+  { label: "과거", items: [7, 14, 17, 27, 33, 45] },
+  { label: "미래", items: [4, 11, 18, 28, 30, 41, 42] },
+  { label: "대인관계", items: [6, 22, 32, 44] },
+  { label: "권위자", items: [3, 31] },
+  { label: "자아상", items: [15, 16, 34] },
+  { label: "두려움", items: [5, 21, 40, 43] },
+  { label: "기타", items: [1, 38, 46] },
+];
 export const SCT_ITEMS: string[] = [
   "나에게 이상한 일이 생겼을 때",
   "내 생각에 가끔 아버지는",

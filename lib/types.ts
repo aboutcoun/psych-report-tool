@@ -66,8 +66,14 @@ export interface CounselorPoint {
   detail: string; // 그 포인트에 대한 풍성한 설명
 }
 
+export interface SctDomainNote {
+  domain: string; // 예: "가족", "아버지" 등 (SCT_DOMAINS의 label과 일치)
+  note: string;   // 해당 영역에 대한 간단한 해석
+}
+
 export interface CounselorSection extends ReportSection {
   counselor_notes: CounselorPoint[]; // 상담 전략, 라포 형성, 예상 저항 등을 개조식 포인트로 정리
+  sct_domain_notes?: SctDomainNote[]; // SCT를 영역별로 분석한 결과 (특이사항이 있는 영역만 포함)
 }
 
 export interface ReportResult {

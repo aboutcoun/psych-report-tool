@@ -480,6 +480,72 @@ html, body {
   margin: 0;
 }
 
+/* ── SCT 영역별 응답 부록 페이지 ───────────────── */
+.sct-domain-group {
+  margin-bottom: 18px;
+  page-break-inside: avoid;
+}
+
+.sct-domain-title {
+  display: inline-block;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--ink);
+  padding: 3px 10px;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+.sct-domain-items {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.sct-domain-item {
+  display: flex;
+  gap: 6px;
+  padding: 6px 10px;
+  font-size: 12.5px;
+  border-bottom: 1px solid var(--line);
+}
+
+.sct-domain-item:last-child {
+  border-bottom: none;
+}
+
+.sct-domain-item:nth-child(odd) {
+  background: #fafafa;
+}
+
+.sct-domain-num {
+  color: var(--ink-soft);
+  flex-shrink: 0;
+}
+
+.sct-domain-stem {
+  color: var(--ink-soft);
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.sct-domain-response {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.sct-domain-note {
+  margin-top: 6px;
+  padding: 8px 12px;
+  background: var(--accent-soft);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 4px 4px 0;
+  font-size: 12.5px;
+  color: var(--ink);
+  line-height: 1.5;
+}
+
 .page-brand-top {
   position: absolute;
   top: 14px;

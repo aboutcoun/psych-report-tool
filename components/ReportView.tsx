@@ -7,6 +7,7 @@ import NextStepsInfographic from "./NextStepsInfographic";
 import {
   MMPI_CLINICAL, MMPI_RC,
   TCI_TEMPERAMENT, TCI_CHARACTER, TCI_TEMPERAMENT_KO, TCI_CHARACTER_KO,
+  SCT_DOMAINS, SCT_ITEMS,
 } from "@/lib/scales";
 import { ClientInfo, MmpiInput, TciInput, ReportResult, ReportSection, CounselorSection } from "@/lib/types";
 
@@ -48,12 +49,13 @@ function PageFooter({ current, total }: { current: number; total: number }) {
 }
 
 export default function ReportView({
-  client, mmpi, tci, sctEnabled, result, onPrint, onBack,
+  client, mmpi, tci, sctEnabled, sctResponses, result, onPrint, onBack,
 }: {
   client: ClientInfo;
   mmpi: MmpiInput;
   tci: TciInput;
   sctEnabled: boolean;
+  sctResponses: Record<number, string>;
   result: ReportResult;
   onPrint: () => void;
   onBack: () => void;
@@ -141,7 +143,22 @@ export default function ReportView({
   const soloPages: Block[][] = remaining.map((b) => [b]);
 
   const allPages: Block[][] = [page1, ...soloPages, [integrationBlock]];
-  const isLastPage = (i: number) => i === allPages.length - 1;
+  const integrationPageIndex = allPages.length - 1;
+  const isLastPage = (i: number) => i === integrationPageIndex;
+
+  // ── SCT 영역별 응답 (상담자용, SCT 실시한 경우에만 부록 페이지로 추가) ──
+  const sctDomainGroups = SCT_DOMAINS.map((domain) => {
+    const items = domain.items
+      .map((num) => ({ num, stem: SCT_ITEMS[num - 1], response: sctResponses[num] }))
+      .filter((it) => it.response && it.response.trim().length > 0);
+    const noteEntry = isCounselor
+      ? (section as CounselorSection).sct_domain_notes?.find((n) => n.domain === domain.label)
+      : undefined;
+    return { label: domain.label, items, note: noteEntry?.note };
+  }).filter((g) => g.items.length > 0);
+
+  const showSctAppendix = isCounselor && sctEnabled && sctDomainGroups.length > 0;
+  const totalPages = allPages.length + (showSctAppendix ? 1 : 0);
 
   return (
     <div>
@@ -226,10 +243,48 @@ export default function ReportView({
             </div>
           )}
 
-          <PageFooter current={pageIdx + 1} total={allPages.length} />
+          <PageFooter current={pageIdx + 1} total={totalPages} />
         </section>
         );
       })}
+
+      {showSctAppendix && (
+        <section className="report-page">
+          <BrandTop />
+          <header className="report-masthead">
+            <h2>심리검사 통합 해석 보고서</h2>
+            <div className="meta">
+              {client.name || "비공개"} · {client.gender || "-"} · 만 {client.age || "-"}세 · 상담자용
+            </div>
+          </header>
+
+          <div className="page-content">
+            <div className="report-block">
+              <div className="report-section-title">SCT 영역별 응답</div>
+              <p className="report-body-text" style={{ marginBottom: 16 }}>
+                아래는 SCT 문항을 주제 영역별로 묶어 정리한 것입니다. 특이사항이 뚜렷한 영역에는 간단한 해석을 함께 표시했습니다.
+              </p>
+              {sctDomainGroups.map((group) => (
+                <div className="sct-domain-group" key={group.label}>
+                  <div className="sct-domain-title">{group.label}</div>
+                  <div className="sct-domain-items">
+                    {group.items.map((it) => (
+                      <div className="sct-domain-item" key={it.num}>
+                        <span className="sct-domain-num">{it.num}.</span>
+                        <span className="sct-domain-stem">{it.stem}</span>
+                        <span className="sct-domain-response">{it.response}</span>
+                      </div>
+                    ))}
+                  </div>
+                  {group.note && <div className="sct-domain-note">{group.note}</div>}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <PageFooter current={allPages.length + 1} total={totalPages} />
+        </section>
+      )}
     </div>
   );
 }

@@ -252,6 +252,7 @@ export default function Home() {
           mmpi={{ enabled: mmpiEnabled, validity, trin, clinical, rc, psy5, content, supplementary }}
           tci={{ enabled: tciEnabled, temperament, character }}
           sctEnabled={sctEnabled}
+          sctResponses={sctResponses}
           result={result}
           onPrint={() => window.print()}
           onBack={() => setResult(null)}
@@ -453,7 +454,7 @@ export default function Home() {
       <div className="submit-bar no-print">
         {lastSavedAt && <div className="autosave-note">임시 저장됨 · {lastSavedAt}</div>}
         <button className="btn-primary" onClick={openConfirm} disabled={loading}>
-          {loading ? "보고서 생성 중… (약 20~40초 소요)" : "통합 해석 보고서 생성"}
+          {loading ? "보고서 생성 중… (약 10~25초 소요)" : "통합 해석 보고서 생성"}
         </button>
       </div>
 
