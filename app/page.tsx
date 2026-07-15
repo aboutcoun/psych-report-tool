@@ -47,6 +47,10 @@ export default function Home() {
   const [character, setCharacter] = useState(initScores(TCI_CHARACTER));
 
   const [sctResponses, setSctResponses] = useState<Record<number, string>>({});
+  const [sctLookupPhone4, setSctLookupPhone4] = useState("");
+  const [sctLookupLoading, setSctLookupLoading] = useState(false);
+  const [sctLookupError, setSctLookupError] = useState<string | null>(null);
+  const [sctLookupInfo, setSctLookupInfo] = useState<string | null>(null);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -138,6 +142,40 @@ export default function Home() {
       localStorage.removeItem(DRAFT_KEY);
     } catch {
       // 무시
+    }
+  }
+
+  async function handleSctLookup() {
+    setSctLookupError(null);
+    setSctLookupInfo(null);
+
+    if (!client.name.trim()) {
+      setSctLookupError("먼저 위 인적사항에 이름을 입력해주세요.");
+      return;
+    }
+    if (!/^\d{4}$/.test(sctLookupPhone4)) {
+      setSctLookupError("연락처 뒷 4자리를 숫자 4자리로 입력해주세요.");
+      return;
+    }
+
+    setSctLookupLoading(true);
+    try {
+      const params = new URLSearchParams({ name: client.name, phone4: sctLookupPhone4 });
+      const res = await fetch(`/api/sct-lookup?${params.toString()}`);
+      const data = await res.json();
+      if (!res.ok) {
+        setSctLookupError(data.error || "조회에 실패했습니다.");
+        return;
+      }
+      const record = data.result;
+      setSctResponses(record.responses || {});
+      setSctLookupInfo(
+        `불러왔습니다 · ${record.name} · ${record.gender || "-"} · 만 ${record.age || "-"}세 · 제출일 ${new Date(record.submittedAt).toLocaleString("ko-KR")}`
+      );
+    } catch (e: any) {
+      setSctLookupError(e?.message || "네트워크 오류가 발생했습니다.");
+    } finally {
+      setSctLookupLoading(false);
     }
   }
 
@@ -364,6 +402,30 @@ export default function Home() {
             </p>
           ) : (
             <div className="section-group" style={{ padding: 0 }}>
+              <div className="sct-lookup-box">
+                <div className="sct-lookup-label">내담자가 직접 제출한 응답 불러오기</div>
+                <div className="sct-lookup-row">
+                  <div className="sct-lookup-field">
+                    <label>이름 (위 인적사항과 동일)</label>
+                    <input value={client.name} readOnly />
+                  </div>
+                  <div className="sct-lookup-field">
+                    <label>연락처 뒷 4자리</label>
+                    <input
+                      value={sctLookupPhone4}
+                      maxLength={4}
+                      placeholder="예: 1234"
+                      onChange={(e) => setSctLookupPhone4(e.target.value.replace(/[^0-9]/g, ""))}
+                    />
+                  </div>
+                  <button type="button" className="btn-secondary" onClick={handleSctLookup} disabled={sctLookupLoading}>
+                    {sctLookupLoading ? "조회 중…" : "불러오기"}
+                  </button>
+                </div>
+                {sctLookupError && <div className="sct-lookup-msg error">{sctLookupError}</div>}
+                {sctLookupInfo && <div className="sct-lookup-msg ok">{sctLookupInfo}</div>}
+              </div>
+
               <div style={{ padding: "14px 16px" }}>
                 <p style={{ fontSize: 12.5, color: "var(--ink-soft)", margin: 0 }}>
                   응답이 있는 문항만 입력하시면 됩니다. 빈 문항은 해석에서 제외됩니다.

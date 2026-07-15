@@ -17,6 +17,24 @@ http://localhost:3000 접속
 
 https://aistudio.google.com/apikey 에서 발급 후 `.env.local`의 `GEMINI_API_KEY`에 입력.
 
+## 2-1. (SCT 온라인 응답 기능을 쓰려면) Upstash Redis 설정
+
+내담자가 `/sct` 링크에서 직접 SCT에 응답하고, 상담자가 이름+연락처 뒷4자리로 조회해서
+불러오는 기능은 별도의 데이터 저장소(Redis)가 필요합니다.
+
+1. https://upstash.com 무료 가입 (또는 Vercel 대시보드 → Storage → Marketplace → Upstash 연동)
+2. Redis 데이터베이스 하나 생성
+3. 생성된 데이터베이스의 **REST URL**과 **REST TOKEN**을 복사
+4. `.env.local`에 추가:
+   ```
+   UPSTASH_REDIS_REST_URL=여기에_URL
+   UPSTASH_REDIS_REST_TOKEN=여기에_TOKEN
+   ```
+5. Vercel에 배포할 때도 Vercel 프로젝트 Settings → Environment Variables에 동일하게 추가
+
+이 기능을 쓰지 않으면 이 단계는 건너뛰어도 되고, 나머지 기능(보고서 생성)은 정상 동작합니다.
+저장된 응답은 **90일 후 자동 삭제**됩니다 (`lib/kv.ts`의 `SCT_RECORD_TTL_SECONDS`에서 조정 가능).
+
 ## 3. Vercel 배포
 
 1. GitHub 레포에 push

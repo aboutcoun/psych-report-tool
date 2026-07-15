@@ -41,6 +41,16 @@ export interface ReportRequestBody {
   sct: SctInput;
 }
 
+// 내담자가 공개 링크(/sct)에서 직접 제출하는 SCT 응답 레코드
+export interface SctSubmission {
+  name: string;
+  gender: "남" | "여" | "";
+  age: string;
+  phone4: string;
+  responses: Record<number, string>;
+  submittedAt: string;
+}
+
 // 하나의 관점(내담자용 또는 상담자용)에 대한 4파트 해석 섹션
 // 실시하지 않은 검사와 관련된 필드는 생략될 수 있음
 export interface ReportSection {
