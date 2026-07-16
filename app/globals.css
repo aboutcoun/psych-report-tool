@@ -260,6 +260,60 @@ html, body {
   color: var(--accent);
 }
 
+.sct-list-toggle-btn {
+  margin-top: 12px;
+  border: none;
+  background: none;
+  color: var(--accent);
+  font-size: 12.5px;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+}
+
+.sct-list-box {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--line);
+}
+
+.sct-list-msg {
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  margin: 0;
+}
+
+.sct-list-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+}
+
+.sct-list-table th {
+  text-align: left;
+  padding: 6px 8px;
+  color: var(--ink-soft);
+  font-weight: 600;
+  border-bottom: 1px solid var(--line);
+}
+
+.sct-list-table td {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--line);
+}
+
+.sct-list-apply-btn {
+  padding: 4px 10px;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  background: #fff;
+  border-radius: 4px;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
 .tab-disabled-note {
   padding: 24px 16px;
   text-align: center;

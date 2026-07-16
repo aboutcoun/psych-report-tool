@@ -10,6 +10,9 @@ export const redis = new Redis({
 // SCT 응답 저장 시 90일 후 자동 삭제 (초 단위)
 export const SCT_RECORD_TTL_SECONDS = 60 * 60 * 24 * 90;
 
+// 제출된 SCT 응답들의 목록(색인) — 상담자 화면에서 제출자 목록을 보여줄 때 사용
+export const SCT_INDEX_KEY = "sct:index";
+
 export function buildSctKey(name: string, phone4: string) {
   const normalizedName = name.replace(/\s+/g, "");
   return `sct:${normalizedName}:${phone4}`;

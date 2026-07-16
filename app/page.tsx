@@ -52,6 +52,14 @@ export default function Home() {
   const [sctLookupError, setSctLookupError] = useState<string | null>(null);
   const [sctLookupInfo, setSctLookupInfo] = useState<string | null>(null);
 
+  const [showSctList, setShowSctList] = useState(false);
+  const [sctList, setSctList] = useState<Array<{
+    key: string; name: string; gender: string; age: string; phone4: string;
+    responses: Record<number, string>; submittedAt: string;
+  }>>([]);
+  const [sctListLoading, setSctListLoading] = useState(false);
+  const [sctListError, setSctListError] = useState<string | null>(null);
+
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [progressLabel, setProgressLabel] = useState("");
@@ -182,6 +190,16 @@ export default function Home() {
     }
   }
 
+  function applySctRecord(record: { name: string; gender: string; age: string; responses: Record<number, string>; submittedAt: string }) {
+    setSctResponses(record.responses || {});
+    const submittedDate = new Date(record.submittedAt);
+    const yyyyMmDd = `${submittedDate.getFullYear()}-${String(submittedDate.getMonth() + 1).padStart(2, "0")}-${String(submittedDate.getDate()).padStart(2, "0")}`;
+    setClient((prev) => ({ ...prev, testDate: yyyyMmDd }));
+    setSctLookupInfo(
+      `불러왔습니다 · ${record.name} · ${record.gender || "-"} · 만 ${record.age || "-"}세 · 제출일 ${new Date(record.submittedAt).toLocaleString("ko-KR")} (위 인적사항의 검사일에 반영했어요)`
+    );
+  }
+
   async function handleSctLookup() {
     setSctLookupError(null);
     setSctLookupInfo(null);
@@ -204,18 +222,33 @@ export default function Home() {
         setSctLookupError(data.error || "조회에 실패했습니다.");
         return;
       }
-      const record = data.result;
-      setSctResponses(record.responses || {});
-      const submittedDate = new Date(record.submittedAt);
-      const yyyyMmDd = `${submittedDate.getFullYear()}-${String(submittedDate.getMonth() + 1).padStart(2, "0")}-${String(submittedDate.getDate()).padStart(2, "0")}`;
-      setClient((prev) => ({ ...prev, testDate: yyyyMmDd }));
-      setSctLookupInfo(
-        `불러왔습니다 · ${record.name} · ${record.gender || "-"} · 만 ${record.age || "-"}세 · 제출일 ${new Date(record.submittedAt).toLocaleString("ko-KR")} (위 인적사항의 검사일에 반영했어요)`
-      );
+      applySctRecord(data.result);
     } catch (e: any) {
       setSctLookupError(e?.message || "네트워크 오류가 발생했습니다.");
     } finally {
       setSctLookupLoading(false);
+    }
+  }
+
+  async function toggleSctList() {
+    const next = !showSctList;
+    setShowSctList(next);
+    if (!next) return;
+
+    setSctListError(null);
+    setSctListLoading(true);
+    try {
+      const res = await fetch("/api/sct-list");
+      const data = await res.json();
+      if (!res.ok) {
+        setSctListError(data.error || "목록을 불러오지 못했습니다.");
+        return;
+      }
+      setSctList(data.result || []);
+    } catch (e: any) {
+      setSctListError(e?.message || "네트워크 오류가 발생했습니다.");
+    } finally {
+      setSctListLoading(false);
     }
   }
 
@@ -465,6 +498,55 @@ export default function Home() {
                 </div>
                 {sctLookupError && <div className="sct-lookup-msg error">{sctLookupError}</div>}
                 {sctLookupInfo && <div className="sct-lookup-msg ok">{sctLookupInfo}</div>}
+
+                <button type="button" className="sct-list-toggle-btn" onClick={toggleSctList}>
+                  {showSctList ? "제출자 목록 닫기 ▲" : "제출자 목록 보기 ▼"}
+                </button>
+
+                {showSctList && (
+                  <div className="sct-list-box">
+                    {sctListLoading && <p className="sct-list-msg">불러오는 중…</p>}
+                    {sctListError && <div className="sct-lookup-msg error">{sctListError}</div>}
+                    {!sctListLoading && !sctListError && sctList.length === 0 && (
+                      <p className="sct-list-msg">아직 제출된 응답이 없습니다.</p>
+                    )}
+                    {!sctListLoading && sctList.length > 0 && (
+                      <table className="sct-list-table">
+                        <thead>
+                          <tr>
+                            <th>이름</th>
+                            <th>성별</th>
+                            <th>연령</th>
+                            <th>제출일시</th>
+                            <th></th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {sctList.map((rec) => (
+                            <tr key={rec.key}>
+                              <td>{rec.name}</td>
+                              <td>{rec.gender || "-"}</td>
+                              <td>{rec.age ? `만 ${rec.age}세` : "-"}</td>
+                              <td>{new Date(rec.submittedAt).toLocaleString("ko-KR")}</td>
+                              <td>
+                                <button
+                                  type="button"
+                                  className="sct-list-apply-btn"
+                                  onClick={() => {
+                                    setClient((prev) => ({ ...prev, name: rec.name, gender: (rec.gender as any) || prev.gender, age: rec.age || prev.age }));
+                                    applySctRecord(rec);
+                                  }}
+                                >
+                                  불러오기
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div style={{ padding: "14px 16px" }}>
