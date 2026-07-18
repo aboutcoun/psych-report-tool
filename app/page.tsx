@@ -59,6 +59,8 @@ export default function Home() {
   }>>([]);
   const [sctListLoading, setSctListLoading] = useState(false);
   const [sctListError, setSctListError] = useState<string | null>(null);
+  const [sctListPage, setSctListPage] = useState(1);
+  const SCT_LIST_PAGE_SIZE = 10;
 
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -237,6 +239,7 @@ export default function Home() {
 
     setSctListError(null);
     setSctListLoading(true);
+    setSctListPage(1);
     try {
       const res = await fetch("/api/sct-list");
       const data = await res.json();
@@ -275,8 +278,8 @@ export default function Home() {
   function openConfirm() {
     setError(null);
 
-    if (!mmpiEnabled && !tciEnabled) {
-      setError('"실시한 검사"에서 MMPI-2와 TCI 중 최소 하나는 선택해야 보고서를 생성할 수 있습니다.');
+    if (!mmpiEnabled && !tciEnabled && !sctEnabled) {
+      setError('"실시한 검사"에서 최소 하나는 선택해야 보고서를 생성할 수 있습니다.');
       return;
     }
     const trin = parseTrin(trinText);
@@ -511,6 +514,7 @@ export default function Home() {
                       <p className="sct-list-msg">아직 제출된 응답이 없습니다.</p>
                     )}
                     {!sctListLoading && sctList.length > 0 && (
+                      <>
                       <table className="sct-list-table">
                         <thead>
                           <tr>
@@ -522,7 +526,9 @@ export default function Home() {
                           </tr>
                         </thead>
                         <tbody>
-                          {sctList.map((rec) => (
+                          {sctList
+                            .slice((sctListPage - 1) * SCT_LIST_PAGE_SIZE, sctListPage * SCT_LIST_PAGE_SIZE)
+                            .map((rec) => (
                             <tr key={rec.key}>
                               <td>{rec.name}</td>
                               <td>{rec.gender || "-"}</td>
@@ -544,6 +550,31 @@ export default function Home() {
                           ))}
                         </tbody>
                       </table>
+
+                      {sctList.length > SCT_LIST_PAGE_SIZE && (
+                        <div className="sct-list-pagination">
+                          <button
+                            type="button"
+                            className="sct-list-page-btn"
+                            onClick={() => setSctListPage((p) => Math.max(1, p - 1))}
+                            disabled={sctListPage === 1}
+                          >
+                            이전
+                          </button>
+                          <span className="sct-list-page-info">
+                            {sctListPage} / {Math.ceil(sctList.length / SCT_LIST_PAGE_SIZE)} 페이지 (총 {sctList.length}명)
+                          </span>
+                          <button
+                            type="button"
+                            className="sct-list-page-btn"
+                            onClick={() => setSctListPage((p) => Math.min(Math.ceil(sctList.length / SCT_LIST_PAGE_SIZE), p + 1))}
+                            disabled={sctListPage >= Math.ceil(sctList.length / SCT_LIST_PAGE_SIZE)}
+                          >
+                            다음
+                          </button>
+                        </div>
+                      )}
+                      </>
                     )}
                   </div>
                 )}

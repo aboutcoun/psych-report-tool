@@ -314,6 +314,35 @@ html, body {
   cursor: pointer;
 }
 
+.sct-list-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.sct-list-page-btn {
+  padding: 5px 12px;
+  border: 1px solid var(--line);
+  background: #fff;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.sct-list-page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.sct-list-page-info {
+  font-size: 11.5px;
+  color: var(--ink-soft);
+}
+
 .tab-disabled-note {
   padding: 24px 16px;
   text-align: center;

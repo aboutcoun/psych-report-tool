@@ -25,12 +25,19 @@ function toItems(defs: { key: string; label: string }[], scores: Record<string, 
 
 const ROMAN = ["I", "II", "III", "IV", "V", "VI"];
 
+type SctDomainGroup = {
+  label: string;
+  items: { num: number; stem: string; response: string }[];
+  note?: string;
+};
+
 type Block = {
   key: string;
   title: string;
   roman?: string;
   body?: string;
   charts?: ReactNode;
+  custom?: ReactNode;
 };
 
 function BrandTop() {
@@ -45,6 +52,29 @@ function PageFooter({ current, total }: { current: number; total: number }) {
         <span className="page-footer-num">{current} / {total}</span>
       </div>
     </div>
+  );
+}
+
+function SctDomainGroups({ groups, intro }: { groups: SctDomainGroup[]; intro: string }) {
+  return (
+    <>
+      <p className="report-body-text" style={{ marginBottom: 16 }}>{intro}</p>
+      {groups.map((group) => (
+        <div className="sct-domain-group" key={group.label}>
+          <div className="sct-domain-title">{group.label}</div>
+          <div className="sct-domain-items">
+            {group.items.map((it) => (
+              <div className="sct-domain-item" key={it.num}>
+                <span className="sct-domain-num">{it.num}.</span>
+                <span className="sct-domain-stem">{it.stem}</span>
+                <span className="sct-domain-response">{it.response}</span>
+              </div>
+            ))}
+          </div>
+          {group.note && <div className="sct-domain-note">{group.note}</div>}
+        </div>
+      ))}
+    </>
   );
 }
 
@@ -71,6 +101,7 @@ export default function ReportView({
   const section: ReportSection | CounselorSection = mode === "client" ? result.client : result.counselor;
   const isCounselor = mode === "counselor";
   const sc = tci.character["SC"] ?? 50;
+  const sctOnly = !mmpi.enabled && !tci.enabled && sctEnabled;
 
   const testsAdministered: string[] = [];
   if (mmpi.enabled) testsAdministered.push("MMPI-2 (다면적 인성검사)");
@@ -78,6 +109,17 @@ export default function ReportView({
   if (sctEnabled) testsAdministered.push("SCT 문장완성검사");
 
   const today = new Date().toLocaleDateString("ko-KR");
+
+  // ── SCT 영역별 응답 그룹 (내담자용은 items만, 상담자용은 note까지 포함) ──
+  const sctDomainGroups: SctDomainGroup[] = SCT_DOMAINS.map((domain) => {
+    const items = domain.items
+      .map((num) => ({ num, stem: SCT_ITEMS[num - 1], response: sctResponses[num] || "" }))
+      .filter((it) => it.response.trim().length > 0);
+    const noteEntry = isCounselor
+      ? (section as CounselorSection).sct_domain_notes?.find((n) => n.domain === domain.label)
+      : undefined;
+    return { label: domain.label, items, note: noteEntry?.note };
+  }).filter((g) => g.items.length > 0);
 
   // ── 블록 구성 ────────────────────────────────────
   const introBlocks: Block[] = [];
@@ -126,6 +168,25 @@ export default function ReportView({
       ),
     });
   }
+
+  // SCT만 단독 실시한 경우: 영역별 응답을 본문 파트로 포함 (내담자=분류만 / 상담자=분류+해석)
+  if (sctOnly && sctDomainGroups.length > 0) {
+    partBlocks.push({
+      key: "sct-domains-main",
+      title: "SCT 영역별 응답",
+      custom: (
+        <SctDomainGroups
+          groups={sctDomainGroups}
+          intro={
+            isCounselor
+              ? "아래는 SCT 문항을 주제 영역별로 묶어 정리한 것입니다. 특이사항이 뚜렷한 영역에는 간단한 해석을 함께 표시했습니다."
+              : "아래는 작성하신 문장완성검사 응답을 주제 영역별로 묶어 정리한 것입니다."
+          }
+        />
+      ),
+    });
+  }
+
   partBlocks.forEach((b, i) => (b.roman = ROMAN[i]));
 
   const integrationBlock: Block = {
@@ -146,18 +207,8 @@ export default function ReportView({
   const integrationPageIndex = allPages.length - 1;
   const isLastPage = (i: number) => i === integrationPageIndex;
 
-  // ── SCT 영역별 응답 (상담자용, SCT 실시한 경우에만 부록 페이지로 추가) ──
-  const sctDomainGroups = SCT_DOMAINS.map((domain) => {
-    const items = domain.items
-      .map((num) => ({ num, stem: SCT_ITEMS[num - 1], response: sctResponses[num] }))
-      .filter((it) => it.response && it.response.trim().length > 0);
-    const noteEntry = isCounselor
-      ? (section as CounselorSection).sct_domain_notes?.find((n) => n.domain === domain.label)
-      : undefined;
-    return { label: domain.label, items, note: noteEntry?.note };
-  }).filter((g) => g.items.length > 0);
-
-  const showSctAppendix = isCounselor && sctEnabled && sctDomainGroups.length > 0;
+  // SCT를 MMPI/TCI와 함께 실시한 경우에만: 상담자용 전용 부록 페이지로 별도 표시
+  const showSctAppendix = !sctOnly && isCounselor && sctEnabled && sctDomainGroups.length > 0;
   const totalPages = allPages.length + (showSctAppendix ? 1 : 0);
 
   return (
@@ -215,7 +266,8 @@ export default function ReportView({
                   {block.roman ? `Part ${block.roman}. ${block.title}` : block.title}
                 </div>
                 {block.charts}
-                <p className="report-body-text">{block.body}</p>
+                {block.custom}
+                {block.body && <p className="report-body-text">{block.body}</p>}
               </div>
             ))}
 
@@ -261,24 +313,10 @@ export default function ReportView({
           <div className="page-content">
             <div className="report-block">
               <div className="report-section-title">SCT 영역별 응답</div>
-              <p className="report-body-text" style={{ marginBottom: 16 }}>
-                아래는 SCT 문항을 주제 영역별로 묶어 정리한 것입니다. 특이사항이 뚜렷한 영역에는 간단한 해석을 함께 표시했습니다.
-              </p>
-              {sctDomainGroups.map((group) => (
-                <div className="sct-domain-group" key={group.label}>
-                  <div className="sct-domain-title">{group.label}</div>
-                  <div className="sct-domain-items">
-                    {group.items.map((it) => (
-                      <div className="sct-domain-item" key={it.num}>
-                        <span className="sct-domain-num">{it.num}.</span>
-                        <span className="sct-domain-stem">{it.stem}</span>
-                        <span className="sct-domain-response">{it.response}</span>
-                      </div>
-                    ))}
-                  </div>
-                  {group.note && <div className="sct-domain-note">{group.note}</div>}
-                </div>
-              ))}
+              <SctDomainGroups
+                groups={sctDomainGroups}
+                intro="아래는 SCT 문항을 주제 영역별로 묶어 정리한 것입니다. 특이사항이 뚜렷한 영역에는 간단한 해석을 함께 표시했습니다."
+              />
             </div>
           </div>
 
