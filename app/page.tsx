@@ -312,6 +312,15 @@ export default function Home() {
         return;
       }
       setResult(data.result);
+
+      // 보고서 생성이 끝나면 다음 상담사가 새로 시작할 수 있도록 임시저장 데이터를 지움
+      // (인쇄/출력은 이 시점 이후 화면에서 이뤄지므로, 생성 완료를 "이번 건 작업 끝"으로 봄)
+      try {
+        localStorage.removeItem(DRAFT_KEY);
+      } catch {
+        // 무시
+      }
+      setLastSavedAt(null);
     } catch (e: any) {
       setError(e?.message || "네트워크 오류가 발생했습니다.");
     } finally {
