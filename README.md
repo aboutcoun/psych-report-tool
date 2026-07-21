@@ -53,6 +53,26 @@ https://aistudio.google.com/apikey 에서 발급 후 `.env.local`의 `GEMINI_API
 4. 설정 후 루트 주소로 접속하면 브라우저가 자체적으로 아이디/비밀번호 입력창을 띄웁니다.
    내담자에게 보내는 `/sct` 링크는 이 인증 없이 그대로 접속됩니다.
 
+## 2-3. SCT 링크 이메일 발송 기능 설정
+
+`/send-invite` 페이지(상담자용, 비밀번호 보호 적용됨)에서 이름+이메일을 입력하면
+`/sct` 응답 링크를 이메일로 보내주는 기능입니다. [Resend](https://resend.com)를 사용합니다.
+
+1. https://resend.com 무료 가입 (월 3,000통까지 무료)
+2. API Key 발급 (Dashboard → API Keys → Create)
+3. 발신 도메인 인증: Dashboard → Domains에서 `aboutcounsel.com` 추가하고 안내에 따라
+   DNS 레코드(도메인 관리 페이지)에 등록 → 인증되면 `send@aboutcounsel.com`처럼
+   실제 센터 도메인으로 발송 가능 (인증 전에는 Resend 제공 테스트 주소로만 발송 가능)
+4. `.env.local`에 추가:
+   ```
+   RESEND_API_KEY=여기에_API_키
+   RESEND_FROM_EMAIL=About심리상담센터 <send@aboutcounsel.com>
+   ```
+5. Vercel에도 동일하게 환경변수 추가 후 재배포
+
+이메일에는 `/sct?name=이름` 형태의 링크가 담기고, 내담자가 그 링크로 들어가면
+이름 칸이 자동으로 채워진 채로 응답 화면이 뜹니다 (성별/연령/연락처는 직접 입력).
+
 ## 3. Vercel 배포
 
 1. GitHub 레포에 push

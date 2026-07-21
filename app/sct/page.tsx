@@ -1,14 +1,21 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { SCT_ITEMS } from "@/lib/scales";
 
-export default function SctResponsePage() {
+function SctResponseForm() {
+  const searchParams = useSearchParams();
   const [name, setName] = useState("");
   const [gender, setGender] = useState<"남" | "여" | "">("");
   const [age, setAge] = useState("");
   const [phone4, setPhone4] = useState("");
   const [responses, setResponses] = useState<Record<number, string>>({});
+
+  useEffect(() => {
+    const prefillName = searchParams.get("name");
+    if (prefillName) setName(prefillName);
+  }, [searchParams]);
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -119,5 +126,13 @@ export default function SctResponsePage() {
         </button>
       </div>
     </div>
+  );
+}
+
+export default function SctResponsePage() {
+  return (
+    <Suspense fallback={null}>
+      <SctResponseForm />
+    </Suspense>
   );
 }

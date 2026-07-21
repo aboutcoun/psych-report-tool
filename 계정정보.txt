@@ -1,0 +1,7 @@
+아이디
+about
+비번
+0105
+
+resend (SCT발송용)
+API KEY=re_PkV9x7Uw_Lj582mfKGgzeNNsKQQcmL8XE

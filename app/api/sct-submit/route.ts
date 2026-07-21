@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { redis, buildSctKey, SCT_RECORD_TTL_SECONDS } from "@/lib/kv";
+import { redis, buildSctKey, SCT_RECORD_TTL_SECONDS, SCT_INDEX_KEY } from "@/lib/kv";
 import { SctSubmission } from "@/lib/types";
 
 export async function POST(req: NextRequest) {
@@ -25,6 +25,8 @@ export async function POST(req: NextRequest) {
 
     const key = buildSctKey(record.name, phone4);
     await redis.set(key, record, { ex: SCT_RECORD_TTL_SECONDS });
+    // 목록 조회용 색인에도 등록 (같은 사람이 재제출하면 시간만 최신으로 갱신됨)
+    await redis.zadd(SCT_INDEX_KEY, { score: Date.now(), member: key });
 
     return NextResponse.json({ ok: true });
   } catch (err: any) {

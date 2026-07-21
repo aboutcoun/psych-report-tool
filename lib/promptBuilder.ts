@@ -117,11 +117,16 @@ MMPI 임상척도와 재구성임상척도(RC)를 근거로 핵심 가설(내담
   if (!tci.enabled) {
     instructionBlocks.push(`**참고** TCI는 실시하지 않았습니다. maturity_summary와 temperament_character_summary 관련 내용은 만들어내지 말고, 이 두 항목 자체를 출력 JSON에서 제외하십시오. 성격 성숙도에 대한 언급도 하지 마십시오.`);
   }
+  if (!mmpi.enabled && !tci.enabled && sct.enabled) {
+    instructionBlocks.push(`**${stepNum++}) SCT 기반 종합 판단**
+MMPI나 TCI 결과가 없으므로, 종합 소견(integration_recommendations)은 SCT 응답에서 나타나는 영역별 패턴을 근거로 작성하십시오. 문장완성검사는 투사적 검사이므로 확정적인 진단적 언급은 피하고, 잠정적 해석임을 전제로 조심스럽게 서술하십시오.`);
+  }
 
   const partLines: string[] = [];
   if (tci.enabled) partLines.push("- 성격적 성숙도: TCI SC 기준 판정 결과");
   if (tci.enabled) partLines.push("- 기질/성격적 특성: TCI 결과 기반 타고난 기질과 성격");
   if (mmpi.enabled) partLines.push("- 증상/심리적 고통: MMPI 기반 심리적 어려움" + (tci.enabled ? ", 성격적 성숙도 판정과 연결지어 설명" : ""));
+  if (sct.enabled) partLines.push("- SCT 영역별 응답: 문장완성검사 결과를 주제 영역별로 정리 (counselor 버전에서만 특이사항 있는 영역에 해석 추가)");
   partLines.push("- 종합 소견: 실시한 검사들을 아우르는 종합적 이해와 상담 방향 제안 (client 버전은 다양한 도움 방식을 폭넓게 제시하고 특정 기법 하나만 반복하지 말 것)");
 
   const clientFields: string[] = [];

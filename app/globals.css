@@ -260,6 +260,89 @@ html, body {
   color: var(--accent);
 }
 
+.sct-list-toggle-btn {
+  margin-top: 12px;
+  border: none;
+  background: none;
+  color: var(--accent);
+  font-size: 12.5px;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+}
+
+.sct-list-box {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--line);
+}
+
+.sct-list-msg {
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  margin: 0;
+}
+
+.sct-list-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+}
+
+.sct-list-table th {
+  text-align: left;
+  padding: 6px 8px;
+  color: var(--ink-soft);
+  font-weight: 600;
+  border-bottom: 1px solid var(--line);
+}
+
+.sct-list-table td {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--line);
+}
+
+.sct-list-apply-btn {
+  padding: 4px 10px;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  background: #fff;
+  border-radius: 4px;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sct-list-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.sct-list-page-btn {
+  padding: 5px 12px;
+  border: 1px solid var(--line);
+  background: #fff;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.sct-list-page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.sct-list-page-info {
+  font-size: 11.5px;
+  color: var(--ink-soft);
+}
+
 .tab-disabled-note {
   padding: 24px 16px;
   text-align: center;
@@ -289,6 +372,13 @@ html, body {
   font-size: 13px;
   font-weight: 600;
   color: var(--accent);
+}
+
+.invite-form-box {
+  padding: 20px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
 }
 
 .autosave-note {
