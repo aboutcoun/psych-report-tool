@@ -4,7 +4,6 @@ export interface ClientInfo {
   name: string;
   gender: "남" | "여" | "";
   age: string;
-  testDate: string;
 }
 
 export interface TrinInput {

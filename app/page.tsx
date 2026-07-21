@@ -28,7 +28,7 @@ type Tab = "mmpi" | "tci" | "sct";
 
 export default function Home() {
   const [tab, setTab] = useState<Tab>("mmpi");
-  const [client, setClient] = useState<ClientInfo>({ name: "", gender: "", age: "", testDate: "" });
+  const [client, setClient] = useState<ClientInfo>({ name: "", gender: "", age: "" });
 
   // 실시한 검사 선택 (기본값: 전부 미선택)
   const [mmpiEnabled, setMmpiEnabled] = useState(false);
@@ -168,7 +168,7 @@ export default function Home() {
   function handleReset() {
     if (!window.confirm("입력한 모든 내용을 초기화할까요? 이 작업은 되돌릴 수 없습니다.")) return;
 
-    setClient({ name: "", gender: "", age: "", testDate: "" });
+    setClient({ name: "", gender: "", age: "" });
     setMmpiEnabled(false);
     setTciEnabled(false);
     setSctEnabled(false);
@@ -194,11 +194,8 @@ export default function Home() {
 
   function applySctRecord(record: { name: string; gender: string; age: string; responses: Record<number, string>; submittedAt: string }) {
     setSctResponses(record.responses || {});
-    const submittedDate = new Date(record.submittedAt);
-    const yyyyMmDd = `${submittedDate.getFullYear()}-${String(submittedDate.getMonth() + 1).padStart(2, "0")}-${String(submittedDate.getDate()).padStart(2, "0")}`;
-    setClient((prev) => ({ ...prev, testDate: yyyyMmDd }));
     setSctLookupInfo(
-      `불러왔습니다 · ${record.name} · ${record.gender || "-"} · 만 ${record.age || "-"}세 · 제출일 ${new Date(record.submittedAt).toLocaleString("ko-KR")} (위 인적사항의 검사일에 반영했어요)`
+      `불러왔습니다 · ${record.name} · ${record.gender || "-"} · 만 ${record.age || "-"}세 · 제출일 ${new Date(record.submittedAt).toLocaleString("ko-KR")}`
     );
   }
 
@@ -369,10 +366,6 @@ export default function Home() {
         <div>
           <label>연령(만)</label>
           <input value={client.age} onChange={(e) => setClient({ ...client, age: e.target.value })} />
-        </div>
-        <div>
-          <label>검사일</label>
-          <input type="date" value={client.testDate} onChange={(e) => setClient({ ...client, testDate: e.target.value })} />
         </div>
       </div>
 

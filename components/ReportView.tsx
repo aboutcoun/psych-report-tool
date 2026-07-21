@@ -237,9 +237,8 @@ export default function ReportView({
           <tbody>
             <tr><th>이름</th><td>{client.name || "비공개"}</td></tr>
             <tr><th>성별 / 연령</th><td>{client.gender || "-"} / 만 {client.age || "-"}세</td></tr>
-            <tr><th>검사일</th><td>{client.testDate || "-"}</td></tr>
             <tr><th>실시 검사</th><td>{testsAdministered.join(", ") || "-"}</td></tr>
-            <tr><th>작성일</th><td>{today}</td></tr>
+            <tr><th>분석일</th><td>{today}</td></tr>
           </tbody>
         </table>
 

@@ -261,15 +261,23 @@ html, body {
 }
 
 .sct-list-toggle-btn {
-  margin-top: 12px;
-  border: none;
-  background: none;
+  display: block;
+  width: 100%;
+  margin-top: 14px;
+  padding: 11px 16px;
+  border: 1.5px solid var(--accent);
+  background: #fff;
   color: var(--accent);
-  font-size: 12.5px;
-  font-weight: 600;
-  text-decoration: underline;
+  font-size: 13.5px;
+  font-weight: 700;
+  border-radius: 6px;
   cursor: pointer;
-  padding: 0;
+  text-align: center;
+}
+
+.sct-list-toggle-btn:hover {
+  background: var(--accent);
+  color: #fff;
 }
 
 .sct-list-box {
