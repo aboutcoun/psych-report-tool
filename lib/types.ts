@@ -57,7 +57,7 @@ export interface ReportSection {
   maturity_summary?: string;             // TCI 실시 시에만 (Part. 성격적 성숙도)
   temperament_character_summary?: string; // TCI 실시 시에만 (Part. 기질/성격적 특성)
   symptom_summary?: string;              // MMPI 실시 시에만 (Part. 증상/심리적 고통)
-  integration_recommendations: string;    // 항상 포함 (통합 해석 및 제언)
+  integration_recommendations: string;    // 항상 포함 (종합 소견)
 }
 
 export interface CounselorPoint {
@@ -78,4 +78,49 @@ export interface CounselorSection extends ReportSection {
 export interface ReportResult {
   client: ReportSection;
   counselor: CounselorSection;
+}
+
+// ── 커플/부부 TCI 검사 ──────────────────────────────────────────
+export interface CouplePerson {
+  name: string;
+  gender: "남" | "여" | "";
+  temperament: ScoreMap; // NS, HA, RD, P
+  character: ScoreMap;   // SD, CO, ST
+}
+
+export interface CoupleReportRequestBody {
+  person1: CouplePerson;
+  person2: CouplePerson;
+}
+
+export interface CoupleConflictScenario {
+  title: string;
+  story: string;
+}
+
+export interface CouplePrescription {
+  forName: string;
+  title: string;
+  detail: string;
+}
+
+export interface CoupleReportResult {
+  person1_animal: string;         // 예: "안전한 숲을 좋아하는 다정다감한 사슴"
+  person2_animal: string;
+  person1_summary: string;        // 기질(타고난 본성)+성격(가꿔온 내면) 요약, 동물 비유 녹여서
+  person2_summary: string;
+  person1_strength: string;       // 하위척도 심층분석 - 강점
+  person1_weakness: string;       // 하위척도 심층분석 - 약점 및 특이지표
+  person2_strength: string;
+  person2_weakness: string;
+  person1_animal_desc: string;    // 동물 유형 정의 설명문
+  person2_animal_desc: string;
+  temperament_analysis: string;   // 기질 차원 비교 분석 (척도별)
+  character_analysis: string;     // 성격 차원 비교 분석 (척도별)
+  conflict_scenarios: CoupleConflictScenario[];
+  prescriptions: CouplePrescription[];
+  strengths: string;              // 관계의 강점
+  cautions: string;                // 주의가 필요한 영역
+  action_items: string[];          // 구체적 실천 제언
+  counselor_comment: string;       // 상담자 코멘트
 }

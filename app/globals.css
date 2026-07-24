@@ -47,6 +47,30 @@ html, body {
   font-size: 14px;
 }
 
+.top-nav {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.top-nav-link {
+  display: inline-block;
+  padding: 8px 16px;
+  border: 1.5px solid var(--accent);
+  color: var(--accent);
+  background: #fff;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.top-nav-link:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
 .tabs {
   display: flex;
   gap: 4px;
@@ -205,6 +229,41 @@ html, body {
   color: #fff;
 }
 
+.tab-disabled-note {
+  padding: 24px 16px;
+  text-align: center;
+  color: var(--ink-soft);
+  font-size: 13.5px;
+  border: 1px dashed var(--line);
+  border-radius: 6px;
+  background: #fff;
+}
+
+.sct-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  font-weight: 600;
+}
+
+.sct-item {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 10px;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--line);
+  align-items: center;
+}
+.sct-item:nth-child(odd) { background: #fff; }
+.sct-item span { font-size: 13.5px; color: var(--ink-soft); }
+.sct-item input {
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  font-size: 13.5px;
+}
+
 .sct-lookup-box {
   padding: 14px 16px;
   background: var(--accent-soft);
@@ -351,16 +410,6 @@ html, body {
   color: var(--ink-soft);
 }
 
-.tab-disabled-note {
-  padding: 24px 16px;
-  text-align: center;
-  color: var(--ink-soft);
-  font-size: 13.5px;
-  border: 1px dashed var(--line);
-  border-radius: 6px;
-  background: #fff;
-}
-
 .sct-done-box {
   text-align: center;
   padding: 80px 20px;
@@ -387,6 +436,49 @@ html, body {
   background: #fff;
   border: 1px solid var(--line);
   border-radius: 8px;
+}
+
+.submit-bar {
+  position: sticky;
+  bottom: 0;
+  background: linear-gradient(to top, var(--paper) 60%, transparent);
+  padding: 20px 0 8px;
+  margin-top: 12px;
+}
+
+.btn-primary {
+  display: inline-block;
+  padding: 13px 28px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 15.5px;
+  font-weight: 700;
+  cursor: pointer;
+  width: 100%;
+}
+.btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.btn-secondary {
+  padding: 9px 16px;
+  background: #fff;
+  border: 1px solid var(--ink);
+  border-radius: 6px;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--ink);
+}
+
+.error-box {
+  padding: 14px 16px;
+  background: #fdecea;
+  border: 1px solid var(--warn);
+  color: var(--warn);
+  border-radius: 6px;
+  margin-bottom: 16px;
+  font-size: 14px;
 }
 
 .autosave-note {
@@ -480,74 +572,6 @@ html, body {
   gap: 10px;
 }
 
-.sct-toggle {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 16px;
-  font-weight: 600;
-}
-
-.sct-item {
-  display: grid;
-  grid-template-columns: 1fr 1.4fr;
-  gap: 10px;
-  padding: 8px 16px;
-  border-bottom: 1px solid var(--line);
-  align-items: center;
-}
-.sct-item:nth-child(odd) { background: #fff; }
-.sct-item span { font-size: 13.5px; color: var(--ink-soft); }
-.sct-item input {
-  padding: 6px 8px;
-  border: 1px solid var(--line);
-  border-radius: 4px;
-  font-size: 13.5px;
-}
-
-.submit-bar {
-  position: sticky;
-  bottom: 0;
-  background: linear-gradient(to top, var(--paper) 60%, transparent);
-  padding: 20px 0 8px;
-  margin-top: 12px;
-}
-
-.btn-primary {
-  display: inline-block;
-  padding: 13px 28px;
-  background: var(--accent);
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  font-size: 15.5px;
-  font-weight: 700;
-  cursor: pointer;
-  width: 100%;
-}
-.btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
-
-.btn-secondary {
-  padding: 9px 16px;
-  background: #fff;
-  border: 1px solid var(--ink);
-  border-radius: 6px;
-  font-size: 13.5px;
-  font-weight: 600;
-  cursor: pointer;
-  color: var(--ink);
-}
-
-.error-box {
-  padding: 14px 16px;
-  background: #fdecea;
-  border: 1px solid var(--warn);
-  color: var(--warn);
-  border-radius: 6px;
-  margin-bottom: 16px;
-  font-size: 14px;
-}
-
 /* ── 보고서 (인쇄용) ───────────────────────────── */
 .report-toolbar {
   display: flex;
@@ -581,101 +605,6 @@ html, body {
 
 .report-block {
   page-break-inside: avoid;
-}
-
-/* ── 상담자 참고사항: 개조식 포인트 카드 ───────────────── */
-.counselor-points {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-top: 4px;
-}
-
-.counselor-point {
-  border-left: 3px solid var(--accent);
-  background: var(--accent-soft);
-  border-radius: 0 6px 6px 0;
-  padding: 10px 14px;
-}
-
-.counselor-point-title {
-  font-size: 13.5px;
-  font-weight: 700;
-  color: var(--accent);
-  margin-bottom: 4px;
-}
-
-.counselor-point-detail {
-  font-size: 13px;
-  color: var(--ink);
-  line-height: 1.6;
-  margin: 0;
-}
-
-/* ── SCT 영역별 응답 부록 페이지 ───────────────── */
-.sct-domain-group {
-  margin-bottom: 18px;
-  page-break-inside: avoid;
-}
-
-.sct-domain-title {
-  display: inline-block;
-  font-size: 12.5px;
-  font-weight: 700;
-  color: #fff;
-  background: var(--ink);
-  padding: 3px 10px;
-  border-radius: 4px;
-  margin-bottom: 8px;
-}
-
-.sct-domain-items {
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  overflow: hidden;
-}
-
-.sct-domain-item {
-  display: flex;
-  gap: 6px;
-  padding: 6px 10px;
-  font-size: 12.5px;
-  border-bottom: 1px solid var(--line);
-}
-
-.sct-domain-item:last-child {
-  border-bottom: none;
-}
-
-.sct-domain-item:nth-child(odd) {
-  background: #fafafa;
-}
-
-.sct-domain-num {
-  color: var(--ink-soft);
-  flex-shrink: 0;
-}
-
-.sct-domain-stem {
-  color: var(--ink-soft);
-  flex-shrink: 0;
-  white-space: nowrap;
-}
-
-.sct-domain-response {
-  color: var(--ink);
-  font-weight: 600;
-}
-
-.sct-domain-note {
-  margin-top: 6px;
-  padding: 8px 12px;
-  background: var(--accent-soft);
-  border-left: 3px solid var(--accent);
-  border-radius: 0 4px 4px 0;
-  font-size: 12.5px;
-  color: var(--ink);
-  line-height: 1.5;
 }
 
 .page-brand-top {
@@ -776,7 +705,7 @@ html, body {
   .report-page {
     box-shadow: none;
     border: none;
-    margin: 0;
+    margin: 0 0 12px 0;
     /* 화면 미리보기용 고정 mm 크기를 인쇄용으로 해제.
        브라우저가 실제로 잡아준 인쇄 가능 영역에 맞춰 채우도록 함
        (고정 210mm/297mm를 그대로 쓰면, 인쇄창 여백 설정이 "기본값"일 때
@@ -876,6 +805,124 @@ html, body {
   letter-spacing: 0.02em;
 }
 
+/* ── 내담자용/상담자용 토글 ───────────────────── */
+.mode-toggle {
+  display: flex;
+  border: 1px solid var(--ink);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.mode-btn {
+  padding: 9px 16px;
+  background: #fff;
+  border: none;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--ink-soft);
+}
+
+.mode-btn.active {
+  background: var(--ink);
+  color: #fff;
+}
+
+/* ── 상담자 참고사항: 개조식 포인트 카드 ───────────────── */
+.counselor-points {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.counselor-point {
+  border-left: 3px solid var(--accent);
+  background: var(--accent-soft);
+  border-radius: 0 6px 6px 0;
+  padding: 10px 14px;
+}
+
+.counselor-point-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+
+.counselor-point-detail {
+  font-size: 13px;
+  color: var(--ink);
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* ── SCT 영역별 응답 부록 페이지 ───────────────── */
+.sct-domain-group {
+  margin-bottom: 18px;
+  page-break-inside: avoid;
+}
+
+.sct-domain-title {
+  display: inline-block;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--ink);
+  padding: 3px 10px;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+.sct-domain-items {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.sct-domain-item {
+  display: flex;
+  gap: 6px;
+  padding: 6px 10px;
+  font-size: 12.5px;
+  border-bottom: 1px solid var(--line);
+}
+
+.sct-domain-item:last-child {
+  border-bottom: none;
+}
+
+.sct-domain-item:nth-child(odd) {
+  background: #fafafa;
+}
+
+.sct-domain-num {
+  color: var(--ink-soft);
+  flex-shrink: 0;
+}
+
+.sct-domain-stem {
+  color: var(--ink-soft);
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.sct-domain-response {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.sct-domain-note {
+  margin-top: 6px;
+  padding: 8px 12px;
+  background: var(--accent-soft);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 4px 4px 0;
+  font-size: 12.5px;
+  color: var(--ink);
+  line-height: 1.5;
+}
+
 /* ── 마지막 페이지 인포그래픽 ───────────────────── */
 .next-steps-wrap {
   margin-top: 26px;
@@ -915,25 +962,107 @@ html, body {
   line-height: 1.5;
 }
 
-/* ── 내담자용/상담자용 토글 ───────────────────── */
-.mode-toggle {
+/* ── 커플/부부 TCI 보고서 전용 ───────────────────── */
+.couple-legend {
   display: flex;
-  border: 1px solid var(--ink);
-  border-radius: 6px;
-  overflow: hidden;
-}
-
-.mode-btn {
-  padding: 9px 16px;
-  background: #fff;
-  border: none;
-  font-size: 13.5px;
-  font-weight: 600;
-  cursor: pointer;
+  gap: 20px;
+  margin-bottom: 8px;
+  font-size: 12px;
   color: var(--ink-soft);
 }
 
-.mode-btn.active {
-  background: var(--ink);
-  color: #fff;
+.couple-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.couple-legend-swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  display: inline-block;
+}
+
+.couple-person-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.couple-person-card {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 16px 18px;
+  background: #fff;
+}
+
+.couple-person-title {
+  font-size: 14.5px;
+  font-weight: 800;
+  color: var(--accent);
+  margin-bottom: 10px;
+}
+
+.couple-person-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  margin: 10px 0 4px;
+}
+
+.couple-person-text {
+  font-size: 12.8px;
+  color: var(--ink);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.couple-scenario-card, .couple-prescription-card {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 14px 18px;
+  margin-bottom: 14px;
+  background: #fff;
+}
+
+.couple-scenario-title, .couple-prescription-title {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: var(--ink);
+  margin-bottom: 8px;
+}
+
+.couple-scenario-story, .couple-prescription-detail {
+  font-size: 13px;
+  color: var(--ink);
+  line-height: 1.7;
+  margin: 0;
+}
+
+.couple-summary-box {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 14px 18px;
+  margin-bottom: 14px;
+  background: #fff;
+}
+
+.couple-summary-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--accent);
+  margin-bottom: 6px;
+}
+
+.couple-action-list {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.couple-action-list li {
+  font-size: 13px;
+  color: var(--ink);
+  line-height: 1.7;
+  margin-bottom: 8px;
 }

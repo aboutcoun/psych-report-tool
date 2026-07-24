@@ -112,6 +112,13 @@ export const TCI_CHARACTER_KO: Record<string, string> = {
   SC: "자율성+연대감",
 };
 
+// ── 커플/부부 TCI 검사 (성격은 SD/CO/ST 3개 척도만 사용, SC 없음) ──────
+export const COUPLE_TCI_CHARACTER: ScaleDef[] = [
+  { key: "SD", label: "SD (자율성)" },
+  { key: "CO", label: "CO (연대감)" },
+  { key: "ST", label: "ST (자기초월)" },
+];
+
 // SCT 문항의 영역별 분류 (상담자용 보고서에서 영역별로 응답을 묶어 제시할 때 사용)
 export const SCT_DOMAINS: { label: string; items: number[] }[] = [
   { label: "가족", items: [12, 24, 35, 48] },
@@ -128,6 +135,8 @@ export const SCT_DOMAINS: { label: string; items: number[] }[] = [
   { label: "두려움", items: [5, 21, 40, 43] },
   { label: "기타", items: [1, 38, 46] },
 ];
+
+// ── SCT (문장완성검사, 일반용 50문항) ────────────────────────────────
 export const SCT_ITEMS: string[] = [
   "나에게 이상한 일이 생겼을 때",
   "내 생각에 가끔 아버지는",

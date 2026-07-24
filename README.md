@@ -1,13 +1,14 @@
 # 심리검사 통합 해석 보고서 생성 도구
 
-MMPI-2 · TCI · SCT 결과를 입력하면 Gemini API로 3개 검사를 통합 분석해
-2~3장 분량의 HTML 보고서(인쇄/PDF 저장 가능)를 생성합니다.
+MMPI-2 · TCI · SCT 결과를 입력하면 Gemini API로 통합 분석해
+내담자용/상담자용 HTML 보고서(인쇄/PDF 저장 가능)를 생성합니다.
+커플/부부 TCI 해석상담보고서 생성 기능도 포함되어 있습니다.
 
 ## 1. 로컬 실행
 
 ```bash
 npm install
-cp .env.example .env.local   # GEMINI_API_KEY 값 채워넣기
+cp .env.example .env.local   # 아래 값들 채워넣기
 npm run dev
 ```
 
@@ -38,7 +39,7 @@ https://aistudio.google.com/apikey 에서 발급 후 `.env.local`의 `GEMINI_API
 ## 2-2. 상담자 화면 비밀번호 보호 (강력 추천)
 
 `/sct`(내담자 응답 페이지)는 링크를 아는 누구나 접속해야 하지만, 그 외 나머지 페이지
-(루트 페이지 = 보고서 생성 화면, 보고서 생성 API 등)는 상담자만 접근해야 합니다.
+(루트 페이지 = 보고서 생성 화면, 커플 TCI 화면, 보고서 생성 API 등)는 상담자만 접근해야 합니다.
 내담자가 링크에서 `/sct` 부분만 지우고 루트 주소로 들어오는 것을 막기 위해,
 `/sct`와 그 제출 API만 빼고 나머지 전체에 브라우저 기본 인증(비밀번호 창)을 걸어뒀습니다.
 
@@ -53,7 +54,7 @@ https://aistudio.google.com/apikey 에서 발급 후 `.env.local`의 `GEMINI_API
 4. 설정 후 루트 주소로 접속하면 브라우저가 자체적으로 아이디/비밀번호 입력창을 띄웁니다.
    내담자에게 보내는 `/sct` 링크는 이 인증 없이 그대로 접속됩니다.
 
-## 2-3. SCT 링크 이메일 발송 기능 설정
+## 2-3. SCT 링크 이메일 발송 기능 설정 (현재 보류 중)
 
 `/send-invite` 페이지(상담자용, 비밀번호 보호 적용됨)에서 이름+이메일을 입력하면
 `/sct` 응답 링크를 이메일로 보내주는 기능입니다. [Resend](https://resend.com)를 사용합니다.
@@ -77,7 +78,7 @@ https://aistudio.google.com/apikey 에서 발급 후 `.env.local`의 `GEMINI_API
 
 1. GitHub 레포에 push
 2. Vercel에서 Import Project
-3. Vercel 프로젝트 Settings → Environment Variables 에 `GEMINI_API_KEY` 추가
+3. Vercel 프로젝트 Settings → Environment Variables 에 위 환경변수들 추가
 4. Deploy
 
 ## 4. Imweb iframe 임베드
@@ -91,20 +92,27 @@ https://aistudio.google.com/apikey 에서 발급 후 `.env.local`의 `GEMINI_API
 ></iframe>
 ```
 
-높이는 실제 콘텐츠 길이에 맞춰 조정하세요. (내부 페이지 스크롤이 생기면 height를 늘리면 됩니다)
+높이는 실제 콘텐츠 길이에 맞춰 조정하세요.
 
-## 5. 커스터마이징 포인트
+## 5. 주요 화면
 
-- `lib/scales.ts` : MMPI-2 / TCI 척도 목록, SCT 50문항 — 척도 추가/삭제는 여기서
-- `lib/promptBuilder.ts` : Gemini에게 보내는 해석 지침 프롬프트 — 해석 톤/분량/로직 수정은 여기서
-- `app/api/generate-report/route.ts` : Gemini 모델명(`GEMINI_MODEL`), temperature 등 API 호출 설정
-- `components/ReportView.tsx` : 보고서 페이지 구성 (현재 3페이지: ①타당도+임상 ②RC/PSY5/내용/보충+TCI ③SCT+종합소견)
+- `/` : MMPI-2/TCI/SCT 통합 해석 보고서 생성 (상담자용, 비밀번호 보호)
+- `/couple-tci` : 커플/부부 TCI 해석상담보고서 생성 (상담자용, 비밀번호 보호)
+- `/sct` : 내담자가 직접 SCT에 응답하는 공개 페이지
+- `/send-invite` : SCT 응답 링크 이메일 발송 (상담자용, 비밀번호 보호, 현재 보류)
+
+## 6. 커스터마이징 포인트
+
+- `lib/scales.ts` : MMPI-2 / TCI 척도 목록, SCT 50문항, SCT 영역 분류 — 척도 추가/삭제는 여기서
+- `lib/promptBuilder.ts` : 개인 통합 보고서용 Gemini 프롬프트
+- `lib/couplePromptBuilder.ts` : 커플 TCI 보고서용 Gemini 프롬프트 (동물 비유 지침 포함)
+- `app/api/generate-report/route.ts`, `app/api/generate-couple-report/route.ts` : Gemini 모델명, temperature 등
+- `components/ReportView.tsx`, `components/CoupleReportView.tsx` : 보고서 페이지 구성
 - `app/globals.css` : 색상/타이포그래피 (`--accent` 등 CSS 변수로 관리)
 
-## 6. 주의사항
+## 7. 주의사항
 
-- Gemini 응답은 JSON 강제(`responseMimeType: application/json`)이지만, 만에 하나 파싱 실패 시
-  API가 원본 텍스트(`raw`)를 함께 반환하니 서버 로그로 확인 가능합니다.
-- 보고서 하단에 "AI 생성 초안이며 전문가 검토 필요" 문구가 고정으로 들어갑니다 (`ReportView.tsx` 하단).
 - 내담자 개인정보(이름 등)는 클라이언트→서버(Gemini API) 요청 바디에 그대로 포함되어 전송되니,
   민감한 실명 대신 이니셜/코드명 입력을 권장합니다.
+- Gemini 무료 티어는 입력/출력이 구글의 제품 개선에 활용될 수 있습니다. 실제 서비스 운영 시
+  결제(유료 티어) 연결을 권장합니다.
