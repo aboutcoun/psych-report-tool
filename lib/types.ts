@@ -93,32 +93,9 @@ export interface CoupleReportRequestBody {
   person2: CouplePerson;
 }
 
-export interface CoupleConflictScenario {
-  title: string;
-  story: string;
-}
-
-export interface CouplePrescription {
-  forName: string;
-  title: string;
-  detail: string;
-}
-
 export interface CoupleReportResult {
-  person1_animal: string;         // 예: "안전한 숲을 좋아하는 다정다감한 사슴"
-  person2_animal: string;
-  person1_summary: string;        // 기질(타고난 본성)+성격(가꿔온 내면) 요약, 동물 비유 녹여서
-  person2_summary: string;
-  person1_strength: string;       // 하위척도 심층분석 - 강점
-  person1_weakness: string;       // 하위척도 심층분석 - 약점 및 특이지표
-  person2_strength: string;
-  person2_weakness: string;
-  person1_animal_desc: string;    // 동물 유형 정의 설명문
-  person2_animal_desc: string;
-  temperament_analysis: string;   // 기질 차원 비교 분석 (척도별)
-  character_analysis: string;     // 성격 차원 비교 분석 (척도별)
-  conflict_scenarios: CoupleConflictScenario[];
-  prescriptions: CouplePrescription[];
+  temperament_analysis: string;   // 기질 차원(NS/HA/RD/P) 척도별 비교 분석
+  character_analysis: string;     // 성격 차원(SD/CO/ST) 척도별 비교 분석
   strengths: string;              // 관계의 강점
   cautions: string;                // 주의가 필요한 영역
   action_items: string[];          // 구체적 실천 제언

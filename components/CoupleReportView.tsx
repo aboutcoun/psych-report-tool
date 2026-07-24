@@ -18,16 +18,24 @@ function PageFooter({ current, total }: { current: number; total: number }) {
   );
 }
 
+function levelOf(v: number): string {
+  if (v <= 10) return "매우 낮음";
+  if (v <= 30) return "낮음";
+  if (v <= 70) return "보통";
+  if (v <= 90) return "높음";
+  return "매우 높음";
+}
+
 const TEMPERAMENT_SCALES = [
-  { key: "NS", label: "자극추구" },
-  { key: "HA", label: "위험회피" },
-  { key: "RD", label: "사회적민감성" },
-  { key: "P", label: "인내력" },
+  { key: "NS", label: "자극추구(NS)" },
+  { key: "HA", label: "위험회피(HA)" },
+  { key: "RD", label: "사회적민감성(RD)" },
+  { key: "P", label: "인내력(P)" },
 ];
 const CHARACTER_SCALES = [
-  { key: "SD", label: "자율성" },
-  { key: "CO", label: "연대감" },
-  { key: "ST", label: "자기초월" },
+  { key: "SD", label: "자율성(SD)" },
+  { key: "CO", label: "연대감(CO)" },
+  { key: "ST", label: "자기초월(ST)" },
 ];
 
 export default function CoupleReportView({
@@ -40,16 +48,17 @@ export default function CoupleReportView({
 }) {
   const { person1, person2 } = request;
   const today = new Date().toLocaleDateString("ko-KR");
-  const TOTAL_PAGES = 7;
+  const TOTAL_PAGES = 4;
 
-  const summaryRows = [...TEMPERAMENT_SCALES, ...CHARACTER_SCALES].map((s) => ({
+  const allScales = [...TEMPERAMENT_SCALES, ...CHARACTER_SCALES];
+  const summaryRows = allScales.map((s) => ({
     key: s.key,
     label: s.label,
     v1: (person1.temperament[s.key] ?? person1.character[s.key]) ?? 50,
     v2: (person2.temperament[s.key] ?? person2.character[s.key]) ?? 50,
   }));
 
-  const chartItems = summaryRows.map((r) => ({ key: r.key, label: r.label, value1: r.v1, value2: r.v2 }));
+  const chartItems = summaryRows.map((r) => ({ key: r.key, label: r.label.replace(/\(.+\)/, ""), value1: r.v1, value2: r.v2 }));
 
   function Masthead() {
     return (
@@ -89,7 +98,7 @@ export default function CoupleReportView({
         <div className="cover-brand">어바웃심리상담센터 · aboutcounsel.com</div>
       </section>
 
-      {/* 2p: 검사 결과 요약 + 동물 유형 정의 */}
+      {/* 2p: 검사 결과 요약 (표 + 그래프) */}
       <section className="report-page">
         <BrandTop />
         <Masthead />
@@ -97,21 +106,32 @@ export default function CoupleReportView({
         <div className="page-content page-content-center">
           <div className="report-block">
             <div className="report-section-title">검사 결과 요약</div>
-            <CoupleLegend name1={person1.name} name2={person2.name} />
-            <CoupleBarChart items={chartItems} domainMax={100} refLines={[{ at: 50, label: "50" }]} />
-          </div>
+            <table className="couple-score-table">
+              <thead>
+                <tr>
+                  <th>척도</th>
+                  <th>{person1.name || "피검자1"}</th>
+                  <th>수준</th>
+                  <th>{person2.name || "피검자2"}</th>
+                  <th>수준</th>
+                </tr>
+              </thead>
+              <tbody>
+                {summaryRows.map((r) => (
+                  <tr key={r.key}>
+                    <td>{r.label}</td>
+                    <td>{r.v1}</td>
+                    <td>{levelOf(r.v1)}</td>
+                    <td>{r.v2}</td>
+                    <td>{levelOf(r.v2)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
 
-          <div className="report-block">
-            <div className="report-section-title">두 사람의 동물 유형 정의</div>
-            <div className="couple-person-row">
-              <div className="couple-person-card">
-                <div className="couple-person-title">{person1.name}님: {result.person1_animal}</div>
-                <p className="couple-person-text">{result.person1_animal_desc}</p>
-              </div>
-              <div className="couple-person-card">
-                <div className="couple-person-title">{person2.name}님: {result.person2_animal}</div>
-                <p className="couple-person-text">{result.person2_animal_desc}</p>
-              </div>
+            <div style={{ marginTop: 18 }}>
+              <CoupleLegend name1={person1.name} name2={person2.name} />
+              <CoupleBarChart items={chartItems} domainMax={100} refLines={[{ at: 50, label: "50" }]} />
             </div>
           </div>
         </div>
@@ -119,39 +139,7 @@ export default function CoupleReportView({
         <PageFooter current={2} total={TOTAL_PAGES} />
       </section>
 
-      {/* 3p: 개인별 기질/성격 요약 + 강점/약점 */}
-      <section className="report-page">
-        <BrandTop />
-        <Masthead />
-
-        <div className="page-content page-content-center">
-          <div className="report-block">
-            <div className="report-section-title">개인별 기질 및 성격 요약 분석</div>
-            <div className="couple-person-row">
-              <div className="couple-person-card">
-                <div className="couple-person-title">{person1.name}님: {result.person1_animal}</div>
-                <p className="couple-person-text">{result.person1_summary}</p>
-                <div className="couple-person-label">강점</div>
-                <p className="couple-person-text">{result.person1_strength}</p>
-                <div className="couple-person-label">약점 및 특이지표</div>
-                <p className="couple-person-text">{result.person1_weakness}</p>
-              </div>
-              <div className="couple-person-card">
-                <div className="couple-person-title">{person2.name}님: {result.person2_animal}</div>
-                <p className="couple-person-text">{result.person2_summary}</p>
-                <div className="couple-person-label">강점</div>
-                <p className="couple-person-text">{result.person2_strength}</p>
-                <div className="couple-person-label">약점 및 특이지표</div>
-                <p className="couple-person-text">{result.person2_weakness}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <PageFooter current={3} total={TOTAL_PAGES} />
-      </section>
-
-      {/* 4p: 기질/성격 차원 비교 분석 */}
+      {/* 3p: 기질/성격 차원 분석 */}
       <section className="report-page">
         <BrandTop />
         <Masthead />
@@ -167,50 +155,10 @@ export default function CoupleReportView({
           </div>
         </div>
 
-        <PageFooter current={4} total={TOTAL_PAGES} />
+        <PageFooter current={3} total={TOTAL_PAGES} />
       </section>
 
-      {/* 5p: 갈등 시나리오 */}
-      <section className="report-page">
-        <BrandTop />
-        <Masthead />
-
-        <div className="page-content page-content-center">
-          <div className="report-block">
-            <div className="report-section-title">연애·결혼 관계에서의 주요 갈등 양상</div>
-            {result.conflict_scenarios.map((s, i) => (
-              <div className="couple-scenario-card" key={i}>
-                <div className="couple-scenario-title">갈등 상황 {i + 1}: {s.title}</div>
-                <p className="couple-scenario-story">{s.story}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <PageFooter current={5} total={TOTAL_PAGES} />
-      </section>
-
-      {/* 6p: 맞춤형 처방전 (단독 페이지로 분리) */}
-      <section className="report-page">
-        <BrandTop />
-        <Masthead />
-
-        <div className="page-content page-content-center">
-          <div className="report-block">
-            <div className="report-section-title">관계 개선을 위한 맞춤형 처방전</div>
-            {result.prescriptions.map((p, i) => (
-              <div className="couple-prescription-card" key={i}>
-                <div className="couple-prescription-title">{p.forName}님을 위한 처방: "{p.title}"</div>
-                <p className="couple-prescription-detail">{p.detail}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <PageFooter current={6} total={TOTAL_PAGES} />
-      </section>
-
-      {/* 7p: 종합 제언 (단독 페이지로 분리) */}
+      {/* 4p: 종합 제언 */}
       <section className="report-page">
         <BrandTop />
         <Masthead />
@@ -245,7 +193,7 @@ export default function CoupleReportView({
           </div>
         </div>
 
-        <PageFooter current={7} total={TOTAL_PAGES} />
+        <PageFooter current={4} total={TOTAL_PAGES} />
       </section>
     </div>
   );

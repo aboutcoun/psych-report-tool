@@ -971,6 +971,33 @@ html, body {
   color: var(--ink-soft);
 }
 
+.couple-score-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.couple-score-table th {
+  text-align: center;
+  padding: 8px 10px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 700;
+  border-bottom: 1px solid var(--line);
+}
+
+.couple-score-table td {
+  text-align: center;
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--line);
+}
+
+.couple-score-table td:first-child {
+  text-align: left;
+  color: var(--ink-soft);
+  font-weight: 600;
+}
+
 .couple-legend-item {
   display: flex;
   align-items: center;
