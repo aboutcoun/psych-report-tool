@@ -18,14 +18,6 @@ function PageFooter({ current, total }: { current: number; total: number }) {
   );
 }
 
-function levelOf(v: number): string {
-  if (v <= 10) return "매우 낮음";
-  if (v <= 30) return "낮음";
-  if (v <= 70) return "보통";
-  if (v <= 90) return "높음";
-  return "매우 높음";
-}
-
 const TEMPERAMENT_SCALES = [
   { key: "NS", label: "자극추구" },
   { key: "HA", label: "위험회피" },
@@ -48,7 +40,7 @@ export default function CoupleReportView({
 }) {
   const { person1, person2 } = request;
   const today = new Date().toLocaleDateString("ko-KR");
-  const TOTAL_PAGES = 6;
+  const TOTAL_PAGES = 7;
 
   const summaryRows = [...TEMPERAMENT_SCALES, ...CHARACTER_SCALES].map((s) => ({
     key: s.key,
@@ -58,6 +50,15 @@ export default function CoupleReportView({
   }));
 
   const chartItems = summaryRows.map((r) => ({ key: r.key, label: r.label, value1: r.v1, value2: r.v2 }));
+
+  function Masthead() {
+    return (
+      <header className="report-masthead">
+        <h2>커플 TCI 해석상담보고서</h2>
+        <div className="meta">{person1.name} · {person2.name}</div>
+      </header>
+    );
+  }
 
   return (
     <div>
@@ -91,12 +92,9 @@ export default function CoupleReportView({
       {/* 2p: 검사 결과 요약 + 동물 유형 정의 */}
       <section className="report-page">
         <BrandTop />
-        <header className="report-masthead">
-          <h2>커플 TCI 해석상담보고서</h2>
-          <div className="meta">{person1.name} · {person2.name}</div>
-        </header>
+        <Masthead />
 
-        <div className="page-content">
+        <div className="page-content page-content-center">
           <div className="report-block">
             <div className="report-section-title">검사 결과 요약</div>
             <CoupleLegend name1={person1.name} name2={person2.name} />
@@ -124,12 +122,9 @@ export default function CoupleReportView({
       {/* 3p: 개인별 기질/성격 요약 + 강점/약점 */}
       <section className="report-page">
         <BrandTop />
-        <header className="report-masthead">
-          <h2>커플 TCI 해석상담보고서</h2>
-          <div className="meta">{person1.name} · {person2.name}</div>
-        </header>
+        <Masthead />
 
-        <div className="page-content">
+        <div className="page-content page-content-center">
           <div className="report-block">
             <div className="report-section-title">개인별 기질 및 성격 요약 분석</div>
             <div className="couple-person-row">
@@ -159,12 +154,9 @@ export default function CoupleReportView({
       {/* 4p: 기질/성격 차원 비교 분석 */}
       <section className="report-page">
         <BrandTop />
-        <header className="report-masthead">
-          <h2>커플 TCI 해석상담보고서</h2>
-          <div className="meta">{person1.name} · {person2.name}</div>
-        </header>
+        <Masthead />
 
-        <div className="page-content">
+        <div className="page-content page-content-center">
           <div className="report-block">
             <div className="report-section-title">서로의 기질 차원(Temperament)에 대한 분석</div>
             <p className="report-body-text">{result.temperament_analysis}</p>
@@ -181,12 +173,9 @@ export default function CoupleReportView({
       {/* 5p: 갈등 시나리오 */}
       <section className="report-page">
         <BrandTop />
-        <header className="report-masthead">
-          <h2>커플 TCI 해석상담보고서</h2>
-          <div className="meta">{person1.name} · {person2.name}</div>
-        </header>
+        <Masthead />
 
-        <div className="page-content">
+        <div className="page-content page-content-center">
           <div className="report-block">
             <div className="report-section-title">연애·결혼 관계에서의 주요 갈등 양상</div>
             {result.conflict_scenarios.map((s, i) => (
@@ -201,15 +190,12 @@ export default function CoupleReportView({
         <PageFooter current={5} total={TOTAL_PAGES} />
       </section>
 
-      {/* 6p: 맞춤형 처방전 + 종합 제언 */}
+      {/* 6p: 맞춤형 처방전 (단독 페이지로 분리) */}
       <section className="report-page">
         <BrandTop />
-        <header className="report-masthead">
-          <h2>커플 TCI 해석상담보고서</h2>
-          <div className="meta">{person1.name} · {person2.name}</div>
-        </header>
+        <Masthead />
 
-        <div className="page-content">
+        <div className="page-content page-content-center">
           <div className="report-block">
             <div className="report-section-title">관계 개선을 위한 맞춤형 처방전</div>
             {result.prescriptions.map((p, i) => (
@@ -219,7 +205,17 @@ export default function CoupleReportView({
               </div>
             ))}
           </div>
+        </div>
 
+        <PageFooter current={6} total={TOTAL_PAGES} />
+      </section>
+
+      {/* 7p: 종합 제언 (단독 페이지로 분리) */}
+      <section className="report-page">
+        <BrandTop />
+        <Masthead />
+
+        <div className="page-content">
           <div className="report-block">
             <div className="report-section-title">종합 제언</div>
             <div className="couple-summary-box">
@@ -249,7 +245,7 @@ export default function CoupleReportView({
           </div>
         </div>
 
-        <PageFooter current={6} total={TOTAL_PAGES} />
+        <PageFooter current={7} total={TOTAL_PAGES} />
       </section>
     </div>
   );

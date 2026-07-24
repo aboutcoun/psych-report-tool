@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ScoreGroup from "@/components/ScoreGroup";
 import CoupleReportView from "@/components/CoupleReportView";
 import { TCI_TEMPERAMENT, COUPLE_TCI_CHARACTER, ScaleDef } from "@/lib/scales";
@@ -72,9 +72,43 @@ export default function CoupleTciPage() {
   const [character2, setCharacter2] = useState(initScores(COUPLE_TCI_CHARACTER));
 
   const [loading, setLoading] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [progressLabel, setProgressLabel] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<CoupleReportResult | null>(null);
   const [requestBody, setRequestBody] = useState<CoupleReportRequestBody | null>(null);
+
+  // ── 생성 중 가상 진행률 표시 ─────────────────────────
+  useEffect(() => {
+    if (!loading) {
+      setProgress(0);
+      setProgressLabel("");
+      return;
+    }
+
+    const stages = [
+      { at: 0, label: "두 분의 기질/성격 패턴을 분석하고 있어요" },
+      { at: 25, label: "어울리는 동물 유형을 찾고 있어요" },
+      { at: 50, label: "갈등 시나리오와 처방전을 작성하고 있어요" },
+      { at: 80, label: "보고서를 정리하고 있어요" },
+    ];
+
+    setProgress(2);
+    setProgressLabel(stages[0].label);
+
+    const interval = setInterval(() => {
+      setProgress((prev) => {
+        if (prev >= 92) return prev;
+        const next = prev + (92 - prev) * 0.05 + 0.4;
+        const capped = Math.min(next, 92);
+        const stage = [...stages].reverse().find((s) => capped >= s.at);
+        if (stage) setProgressLabel(stage.label);
+        return capped;
+      });
+    }, 400);
+
+    return () => clearInterval(interval);
+  }, [loading]);
 
   async function handleSubmit() {
     setError(null);
@@ -153,8 +187,20 @@ export default function CoupleTciPage() {
       {error && <div className="error-box no-print">{error}</div>}
 
       <div className="submit-bar no-print">
+        {loading && (
+          <div className="progress-wrap">
+            <div className="progress-label">
+              <span>{progressLabel || "생성 중이에요"}</span>
+              <span>{Math.round(progress)}%</span>
+            </div>
+            <div className="progress-track">
+              <div className="progress-fill" style={{ width: `${progress}%` }} />
+            </div>
+            <div className="progress-hint">보통 30~50초 정도 걸려요. 이 화면을 벗어나지 말고 잠시만 기다려주세요.</div>
+          </div>
+        )}
         <button className="btn-primary" onClick={handleSubmit} disabled={loading}>
-          {loading ? "보고서 생성 중… (약 30~50초 소요)" : "커플 해석상담보고서 생성"}
+          {loading ? "보고서 생성 중…" : "커플 해석상담보고서 생성"}
         </button>
       </div>
     </div>
