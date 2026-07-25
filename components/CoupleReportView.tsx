@@ -48,7 +48,7 @@ export default function CoupleReportView({
 }) {
   const { person1, person2 } = request;
   const today = new Date().toLocaleDateString("ko-KR");
-  const TOTAL_PAGES = 4;
+  const TOTAL_PAGES = 6;
 
   const allScales = [...TEMPERAMENT_SCALES, ...CHARACTER_SCALES];
   const summaryRows = allScales.map((s) => ({
@@ -139,7 +139,7 @@ export default function CoupleReportView({
         <PageFooter current={2} total={TOTAL_PAGES} />
       </section>
 
-      {/* 3p: 기질/성격 차원 분석 */}
+      {/* 3p: 기질 차원 분석 (단독 페이지) */}
       <section className="report-page">
         <BrandTop />
         <Masthead />
@@ -149,21 +149,32 @@ export default function CoupleReportView({
             <div className="report-section-title">서로의 기질 차원(Temperament)에 대한 분석</div>
             <p className="report-body-text">{result.temperament_analysis}</p>
           </div>
+        </div>
+
+        <PageFooter current={3} total={TOTAL_PAGES} />
+      </section>
+
+      {/* 4p: 성격 차원 분석 (단독 페이지) */}
+      <section className="report-page">
+        <BrandTop />
+        <Masthead />
+
+        <div className="page-content page-content-center">
           <div className="report-block">
             <div className="report-section-title">서로의 성격 차원(Character)에 대한 분석</div>
             <p className="report-body-text">{result.character_analysis}</p>
           </div>
         </div>
 
-        <PageFooter current={3} total={TOTAL_PAGES} />
+        <PageFooter current={4} total={TOTAL_PAGES} />
       </section>
 
-      {/* 4p: 종합 제언 */}
+      {/* 5p: 종합 제언 - 강점 + 주의영역 */}
       <section className="report-page">
         <BrandTop />
         <Masthead />
 
-        <div className="page-content">
+        <div className="page-content page-content-center">
           <div className="report-block">
             <div className="report-section-title">종합 제언</div>
             <div className="couple-summary-box">
@@ -174,18 +185,29 @@ export default function CoupleReportView({
               <div className="couple-summary-title">② 주의가 필요한 영역</div>
               <p className="couple-person-text">{result.cautions}</p>
             </div>
-            <div className="couple-summary-box">
-              <div className="couple-summary-title">③ 구체적 실천 제언</div>
-              <ol className="couple-action-list">
-                {result.action_items.map((a, i) => (
-                  <li key={i}>{a}</li>
-                ))}
-              </ol>
-            </div>
-            <div className="couple-summary-box">
-              <div className="couple-summary-title">④ 상담자 코멘트</div>
-              <p className="couple-person-text">{result.counselor_comment}</p>
-            </div>
+          </div>
+        </div>
+
+        <PageFooter current={5} total={TOTAL_PAGES} />
+      </section>
+
+      {/* 6p: 종합 제언 - 실천 제언 + 상담자 코멘트 */}
+      <section className="report-page">
+        <BrandTop />
+        <Masthead />
+
+        <div className="page-content">
+          <div className="report-block">
+            <div className="couple-summary-title">③ 구체적 실천 제언</div>
+            <ol className="couple-action-list">
+              {result.action_items.map((a, i) => (
+                <li key={i}>{a}</li>
+              ))}
+            </ol>
+          </div>
+          <div className="report-block">
+            <div className="couple-summary-title">④ 상담자 코멘트</div>
+            <p className="couple-person-text">{result.counselor_comment}</p>
           </div>
 
           <div className="report-disclaimer">
@@ -193,7 +215,7 @@ export default function CoupleReportView({
           </div>
         </div>
 
-        <PageFooter current={4} total={TOTAL_PAGES} />
+        <PageFooter current={6} total={TOTAL_PAGES} />
       </section>
     </div>
   );
