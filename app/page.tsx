@@ -345,10 +345,6 @@ export default function Home() {
 
   return (
     <div className="app-shell">
-      <div className="top-nav no-print">
-        <a className="top-nav-link" href="/couple-tci">커플/부부 TCI</a>
-      </div>
-
       <header className="app-header no-print">
         <h1>심리검사 통합 해석 보고서 생성</h1>
         <p>MMPI-2 · TCI · SCT 결과를 입력하면 통합 해석 보고서를 생성합니다.</p>
