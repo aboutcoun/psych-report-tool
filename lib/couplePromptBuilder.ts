@@ -1,11 +1,9 @@
 import { CoupleReportRequestBody, CouplePerson } from "./types";
 
 function levelOf(v: number): string {
-  if (v <= 10) return "매우 낮음";
   if (v <= 30) return "낮음";
-  if (v <= 70) return "보통";
-  if (v <= 90) return "높음";
-  return "매우 높음";
+  if (v >= 70) return "높음";
+  return "보통";
 }
 
 function formatPerson(p: CouplePerson): string {
@@ -48,6 +46,8 @@ export function buildCouplePrompt(body: CoupleReportRequestBody): string {
 ## 검사 결과 (백분위점수, 50=평균)
 - 피검자1 ${formatPerson(person1)}
 - 피검자2 ${formatPerson(person2)}
+## 수준 판정 기준 (반드시 이 기준을 그대로 사용할 것)
+백분위 70 이상은 "높음", 30 이하는 "낮음", 그 사이(30 초과 70 미만)는 "보통"으로 표현하십시오. "매우 높음", "매우 낮음" 같은 표현은 사용하지 마십시오.
 ${SCALE_DEFINITIONS}
 
 ## 작성 지침
@@ -62,7 +62,7 @@ ${SCALE_DEFINITIONS}
    - 관계의 강점: 공통된 기질/성격적 자원이 관계에 주는 이점
    - 주의가 필요한 영역: 차이가 큰 척도들이 만들어낼 수 있는 정서적 소외감, 갈등 장기화 가능성 등
    - 구체적 실천 제언: 4~5개, 각각 실행 가능한 형태로 구체적으로 서술 (예: "정서 표현의 '번역' 작업", "주간 정서 체크인 도입"처럼 제목이 있는 실천 항목)
-   - 상담자 코멘트: 두 사람의 차이가 옳고 그름의 문제가 아님을 분명히 하고, 필요시 정기적인 커플상담을 권장하며 전문적이고 따뜻한 어조로 마무리
+   - 상담자 코멘트: 두 사람의 차이가 옳고 그름의 문제가 아님을 분명히 하고, 전문적이고 따뜻한 어조로 마무리 (상담을 권할지 여부나 구체적 상담 형태는 언급하지 마십시오 — 이는 별도 기준으로 자동 판정되어 보고서에 추가됩니다)
 
 5) 모든 서술은 실제 점수를 근거로 구체적으로 작성하고, 추측성 내용은 조심스러운 표현으로 제시하십시오. 확정적 진단 언급은 피하십시오.
 

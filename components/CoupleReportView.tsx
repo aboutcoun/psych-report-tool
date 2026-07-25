@@ -19,11 +19,9 @@ function PageFooter({ current, total }: { current: number; total: number }) {
 }
 
 function levelOf(v: number): string {
-  if (v <= 10) return "매우 낮음";
   if (v <= 30) return "낮음";
-  if (v <= 70) return "보통";
-  if (v <= 90) return "높음";
-  return "매우 높음";
+  if (v >= 70) return "높음";
+  return "보통";
 }
 
 const TEMPERAMENT_SCALES = [
@@ -37,6 +35,14 @@ const CHARACTER_SCALES = [
   { key: "CO", label: "연대감(CO)" },
   { key: "ST", label: "자기초월(ST)" },
 ];
+
+function isFlagged(temperament: Record<string, number>, character: Record<string, number>): boolean {
+  const sd = character.SD ?? 50;
+  const co = character.CO ?? 50;
+  const combined = (sd + co) / 2;
+  // 1) 자율성+연대감(평균)이 30 이하 2) 자율성이 30 이하 3) 연대감이 30 이하 — 셋 중 하나라도 해당하면 플래그
+  return combined <= 30 || sd <= 30 || co <= 30;
+}
 
 export default function CoupleReportView({
   request, result, onPrint, onBack,
@@ -59,6 +65,18 @@ export default function CoupleReportView({
   }));
 
   const chartItems = summaryRows.map((r) => ({ key: r.key, label: r.label.replace(/\(.+\)/, ""), value1: r.v1, value2: r.v2 }));
+
+  const flag1 = isFlagged(person1.temperament, person1.character);
+  const flag2 = isFlagged(person2.temperament, person2.character);
+
+  let counselingRecommendation: string | null = null;
+  if (flag1 && flag2) {
+    counselingRecommendation = `${person1.name}님과 ${person2.name}님 두 분 모두 자율성 및 연대감이 낮게 나타났습니다. 두 분이 함께 커플/부부상담을 받으시거나, 각자 개인상담을 병행하시는 것을 권해드립니다.`;
+  } else if (flag1) {
+    counselingRecommendation = `${person1.name}님의 자율성 및 연대감이 낮게 나타났습니다. ${person1.name}님께서 개인상담을 받아보시는 것을 권해드립니다.`;
+  } else if (flag2) {
+    counselingRecommendation = `${person2.name}님의 자율성 및 연대감이 낮게 나타났습니다. ${person2.name}님께서 개인상담을 받아보시는 것을 권해드립니다.`;
+  }
 
   function Masthead() {
     return (
@@ -209,6 +227,15 @@ export default function CoupleReportView({
             <div className="couple-summary-title">④ 상담자 코멘트</div>
             <p className="couple-person-text">{result.counselor_comment}</p>
           </div>
+
+          {counselingRecommendation && (
+            <div className="report-block">
+              <div className="couple-summary-box couple-recommend-box">
+                <div className="couple-summary-title">⑤ 상담 권고</div>
+                <p className="couple-person-text">{counselingRecommendation}</p>
+              </div>
+            </div>
+          )}
 
           <div className="report-disclaimer">
             본 보고서는 어바웃심리상담센터의 TCI 검사 결과를 바탕으로 작성된 전문 해석상담 자료이며, 임상적 진단을 대체하지 않습니다.

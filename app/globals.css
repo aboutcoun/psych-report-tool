@@ -1093,3 +1093,8 @@ html, body {
   line-height: 1.7;
   margin-bottom: 8px;
 }
+
+.couple-recommend-box {
+  border-left: 4px solid var(--warn);
+  background: #fdf3f0;
+}
