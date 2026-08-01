@@ -656,12 +656,13 @@ html, body {
 }
 
 .page-brand-top {
-  position: absolute;
-  top: 14px;
-  right: 20px;
+  /* 절대위치(overlay) 방식은 인쇄/PDF 변환 시 바로 아래 요소와 겹쳐서
+     텍스트가 깨지는 문제가 있어, 일반 문서 흐름으로 배치함 */
+  text-align: right;
   font-size: 9.5px;
   color: var(--ink-soft);
   letter-spacing: 0.03em;
+  margin-bottom: 8px;
 }
 
 /* ── 꼬리말: 장식선 + 브랜드 + 페이지 번호 ───────────────── */
