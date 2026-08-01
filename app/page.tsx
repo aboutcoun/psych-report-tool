@@ -17,11 +17,11 @@ function initScores(defs: ScaleDef[], defaultVal = 50): Record<string, number> {
   return out;
 }
 
-// "66t" / "55F" 같은 입력을 { value, direction } 으로 파싱
+// "66t" / "55F" 또는 문자 없이 "66" 만도 허용해서 { value, direction } 으로 파싱
 function parseTrin(raw: string): TrinInput | null {
-  const m = raw.trim().match(/^(\d{1,3})\s*([tTfF])$/);
+  const m = raw.trim().match(/^(\d{1,3})\s*([tTfF])?$/);
   if (!m) return null;
-  return { value: Number(m[1]), direction: m[2].toUpperCase() as "T" | "F" };
+  return { value: Number(m[1]), direction: (m[2] ? (m[2].toUpperCase() as "T" | "F") : "") };
 }
 
 type Tab = "mmpi" | "tci" | "sct";
@@ -257,7 +257,7 @@ export default function Home() {
       if (p5 && Object.keys(p5).length) setPsy5((prev) => ({ ...prev, ...p5 }));
       if (ct && Object.keys(ct).length) setContent((prev) => ({ ...prev, ...ct }));
       if (sup && Object.keys(sup).length) setSupplementary((prev) => ({ ...prev, ...sup }));
-      if (tr) setTrinText(`${tr.value}${tr.direction}`);
+      if (tr) setTrinText(tr.direction ? `${tr.value}${tr.direction}` : `${tr.value}`);
 
       const warnings: string[] = data.warnings || [];
       setMmpiPdfInfo(
@@ -505,7 +505,7 @@ export default function Home() {
                     />
                   </div>
                   <div className="score-field">
-                    <label htmlFor="trin-input">TRIN (예: 66T / 55F)</label>
+                    <label htmlFor="trin-input">TRIN (예: 66T / 55F / 66)</label>
                     <input
                       id="trin-input"
                       type="text"

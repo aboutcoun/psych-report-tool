@@ -8,11 +8,13 @@ function formatScores(scores: Record<string, number>): string {
 }
 
 function formatTrin(trin: ReportRequestBody["mmpi"]["trin"]): string {
-  const dirNote =
-    trin.direction === "T"
-      ? "T방향(모든 문항에 '그렇다'로 응답하는 경향의 고정반응)"
-      : "F방향(모든 문항에 '아니다'로 응답하는 경향의 고정반응)";
-  return `TRIN=${trin.value} ${dirNote}`;
+  if (trin.direction === "T") {
+    return `TRIN=${trin.value} T방향(모든 문항에 '그렇다'로 응답하는 경향의 고정반응)`;
+  }
+  if (trin.direction === "F") {
+    return `TRIN=${trin.value} F방향(모든 문항에 '아니다'로 응답하는 경향의 고정반응)`;
+  }
+  return `TRIN=${trin.value} (방향 정보 없음 — 방향을 특정하지 말고 TRIN 상승 정도만 참고할 것)`;
 }
 
 function formatSctByDomain(sct: ReportRequestBody["sct"]): string {

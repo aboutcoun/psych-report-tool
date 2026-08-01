@@ -179,14 +179,19 @@ export async function POST(req: NextRequest) {
     const psy5: Record<string, number> = {};
     const content: Record<string, number> = {};
     const supplementary: Record<string, number> = {};
-    let trin: { value: number; direction: "T" | "F" } | null = null;
+    let trin: { value: number; direction: "T" | "F" | "" } | null = null;
 
     if (table1) {
       TABLE1_KEYS.forEach((key, i) => {
         const raw = table1[i];
         if (key === "TRIN") {
           const m2 = raw.match(/^(\d+)([TF])$/i);
-          if (m2) trin = { value: Number(m2[1]), direction: m2[2].toUpperCase() as "T" | "F" };
+          if (m2) {
+            trin = { value: Number(m2[1]), direction: m2[2].toUpperCase() as "T" | "F" };
+          } else if (/^\d+$/.test(raw)) {
+            // 방향 문자(T/F) 표시가 없는 경우 — 값만 있는 그대로 인식하고 방향은 비워둔다
+            trin = { value: Number(raw), direction: "" };
+          }
         } else if (key === "VRIN") {
           validity.VRIN = Number(raw);
         } else if (VALIDITY_ONLY.has(key)) {
@@ -198,6 +203,7 @@ export async function POST(req: NextRequest) {
     } else {
       warnings.push("타당도/임상척도 표를 찾지 못했습니다.");
     }
+    const resolvedTrin = trin as { value: number; direction: "T" | "F" | "" } | null;
 
     if (table2) {
       TABLE2_KEYS.forEach((key, i) => {
@@ -221,8 +227,10 @@ export async function POST(req: NextRequest) {
       warnings.push("보충척도 표를 찾지 못했습니다.");
     }
 
-    if (!trin) {
-      warnings.push("TRIN 값을 자동으로 찾지 못해 기본값(50T)으로 두었습니다. 직접 확인해주세요.");
+    if (!resolvedTrin) {
+      warnings.push("TRIN 값을 자동으로 찾지 못했습니다. 직접 입력해주세요.");
+    } else if (resolvedTrin.direction === "") {
+      warnings.push(`TRIN 값(${resolvedTrin.value})에는 방향(T/F) 표시가 없어 숫자만 입력했습니다.`);
     }
 
     const hasAnything = table1 || table2 || table3 || table4;
@@ -237,7 +245,7 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({
-      result: { validity, clinical, rc, psy5, content, supplementary, trin },
+      result: { validity, clinical, rc, psy5, content, supplementary, trin: resolvedTrin },
       warnings,
     });
   } catch (err: any) {

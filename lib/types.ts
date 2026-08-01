@@ -8,7 +8,7 @@ export interface ClientInfo {
 
 export interface TrinInput {
   value: number;       // 0~100 사이 T점수 절대값
-  direction: "T" | "F"; // T방향(그렇다 방향 고정반응) / F방향(아니다 방향 고정반응)
+  direction: "T" | "F" | ""; // T방향(그렇다 방향 고정반응) / F방향(아니다 방향 고정반응) / ""(방향 표시 없음)
 }
 
 export interface MmpiInput {
