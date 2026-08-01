@@ -2,6 +2,7 @@
 
 import CoupleBarChart, { CoupleLegend } from "./CoupleBarChart";
 import { CoupleReportRequestBody, CoupleReportResult } from "@/lib/types";
+import { stripMarkdown } from "@/lib/textUtils";
 
 function BrandTop() {
   return <div className="page-brand-top">어바웃심리상담센터</div>;
@@ -165,11 +166,11 @@ export default function CoupleReportView({
         <div className="page-content page-content-center">
           <div className="report-block">
             <div className="report-section-title">서로의 기질 차원(Temperament)에 대한 분석</div>
-            <p className="report-body-text">{result.temperament_analysis}</p>
+            <p className="report-body-text">{stripMarkdown(result.temperament_analysis)}</p>
           </div>
           <div className="report-block">
             <div className="report-section-title">서로의 성격 차원(Character)에 대한 분석</div>
-            <p className="report-body-text">{result.character_analysis}</p>
+            <p className="report-body-text">{stripMarkdown(result.character_analysis)}</p>
           </div>
         </div>
 
@@ -186,23 +187,23 @@ export default function CoupleReportView({
             <div className="report-section-title">종합 제언</div>
             <div className="couple-summary-box">
               <div className="couple-summary-title">① 두 분 관계의 강점</div>
-              <p className="couple-person-text">{result.strengths}</p>
+              <p className="couple-person-text">{stripMarkdown(result.strengths)}</p>
             </div>
             <div className="couple-summary-box">
               <div className="couple-summary-title">② 주의가 필요한 영역</div>
-              <p className="couple-person-text">{result.cautions}</p>
+              <p className="couple-person-text">{stripMarkdown(result.cautions)}</p>
             </div>
             <div className="couple-summary-box">
               <div className="couple-summary-title">③ 구체적 실천 제언</div>
               <ol className="couple-action-list">
                 {result.action_items.map((a, i) => (
-                  <li key={i}>{a}</li>
+                  <li key={i}>{stripMarkdown(a)}</li>
                 ))}
               </ol>
             </div>
             <div className="couple-summary-box">
               <div className="couple-summary-title">④ 상담자 코멘트</div>
-              <p className="couple-person-text">{result.counselor_comment}</p>
+              <p className="couple-person-text">{stripMarkdown(result.counselor_comment)}</p>
             </div>
 
             {counselingRecommendation && (

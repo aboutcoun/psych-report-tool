@@ -10,6 +10,7 @@ import {
   SCT_DOMAINS, SCT_ITEMS,
 } from "@/lib/scales";
 import { ClientInfo, MmpiInput, TciInput, ReportResult, ReportSection, CounselorSection } from "@/lib/types";
+import { stripMarkdown } from "@/lib/textUtils";
 
 function toItemsKo(defs: { key: string }[], scores: Record<string, number>, koLabels: Record<string, string>) {
   return defs
@@ -71,7 +72,7 @@ function SctDomainGroups({ groups, intro }: { groups: SctDomainGroup[]; intro: s
               </div>
             ))}
           </div>
-          {group.note && <div className="sct-domain-note">{group.note}</div>}
+          {group.note && <div className="sct-domain-note">{stripMarkdown(group.note)}</div>}
         </div>
       ))}
     </>
@@ -266,7 +267,7 @@ export default function ReportView({
                 </div>
                 {block.charts}
                 {block.custom}
-                {block.body && <p className="report-body-text">{block.body}</p>}
+                {block.body && <p className="report-body-text">{stripMarkdown(block.body)}</p>}
               </div>
             ))}
 
@@ -276,8 +277,8 @@ export default function ReportView({
                 <div className="counselor-points">
                   {(section as CounselorSection).counselor_notes.map((pt, i) => (
                     <div className="counselor-point" key={i}>
-                      <div className="counselor-point-title">{i + 1}. {pt.title}</div>
-                      <p className="counselor-point-detail">{pt.detail}</p>
+                      <div className="counselor-point-title">{i + 1}. {stripMarkdown(pt.title)}</div>
+                      <p className="counselor-point-detail">{stripMarkdown(pt.detail)}</p>
                     </div>
                   ))}
                 </div>
