@@ -13,28 +13,102 @@ const PSY5_ONLY = new Set(["AGGR", "PSYC", "DISC", "NEGE", "INTR"]);
 const TABLE3_KEYS = ["ANX", "FRS", "OBS", "DEP", "HEA", "BIZ", "ANG", "CYN", "ASP", "TPA", "LSE", "SOD", "FAM", "WRK", "TRT"];
 const TABLE4_KEYS = ["A", "R", "Es", "Do", "Re", "Mt", "PK", "MDS", "Ho", "OH", "MACR", "AAS", "APS", "GM", "GF"];
 
-// "전체규준T" 라벨 뒤에 오는 숫자(또는 TRIN처럼 T/F가 붙은) 토큰들을 뽑아냄.
-// PDF 추출기에 따라 라벨과 숫자 사이, 숫자와 숫자 사이에 줄바꿈이 끼어들 수 있어
-// 줄 단위가 아니라 전체 텍스트를 공백/줄바꿈 기준으로 토큰화한 뒤 순서대로 훑는다.
-function findScoreLines(text: string): string[][] {
+/**
+ * "전체규준T" 뒤에 오는 값 뭉치를 찾는다.
+ * PDF 추출 방식에 따라 두 가지 형태로 나올 수 있음:
+ *  1) 공백/줄바꿈으로 구분된 토큰들 ("45 53F 55 ...")
+ *  2) 구분자 없이 통째로 붙은 문자열 ("4553F5551...") ← 셀 사이 공백이 아예 사라지는 PDF 추출기에서 흔함
+ * 두 형태 모두 "숫자+선택적 T/F 문자" 뭉치 목록(candidates)으로 우선 수집해두고,
+ * 이후 자릿수 기반 디코딩으로 정확한 값 개수를 맞춰본다.
+ */
+function findCandidateBlobs(text: string): string[] {
+  const blobs: string[] = [];
+
+  // 형태 2: 라벨 직후 공백 없이 바로 붙은 숫자+문자 뭉치
+  const glued = /전체규준\s*T\s*([0-9TFtf]{6,})/g;
+  let m: RegExpExecArray | null;
+  while ((m = glued.exec(text)) !== null) {
+    blobs.push(m[1]);
+  }
+
+  // 형태 1: 공백/줄바꿈으로 흩어진 토큰들 → 하나의 문자열로 이어붙여 후보에 추가
   const tokens = text.split(/\s+/).filter(Boolean);
-  const results: string[][] = [];
-
   for (let i = 0; i < tokens.length; i++) {
-    if (!tokens[i].includes("전체규준T")) continue;
-
-    const nums: string[] = [];
+    if (!tokens[i].includes("전체규준")) continue;
+    // "전체규준", "T" 가 분리된 토큰일 수도 있으므로 다음 몇 개 토큰 중 T로 시작하거나
+    // 숫자로 시작하는 지점부터 숫자/문자 토큰을 이어붙인다.
     let j = i + 1;
+    // 라벨 자체에 "T"가 없다면(예: "전체규준"만 있고 다음 토큰이 "T") 건너뛴다.
+    if (!tokens[i].includes("T") && tokens[j] === "T") j++;
+    const collected: string[] = [];
     while (j < tokens.length && /^\d+[TF]?$/i.test(tokens[j])) {
-      nums.push(tokens[j]);
+      collected.push(tokens[j]);
       j++;
     }
-    if (nums.length > 0) {
-      results.push(nums);
-      i = j - 1; // 이미 소비한 토큰은 건너뜀
+    if (collected.length > 0) blobs.push(collected.join(""));
+  }
+
+  return blobs;
+}
+
+/**
+ * 자릿수 기반 백트래킹 디코더.
+ * blob을 정확히 `count`개의 조각으로 나눈다. 각 조각은 보통 2자리 숫자이지만
+ * (T점수가 드물게 한 자리·세 자리인 경우도 있어) 1~3자리를 허용하며,
+ * letterIndex로 지정된 위치(TRIN)는 숫자 뒤에 T/F 한 글자가 더 붙을 수 있다.
+ * blob 전체를 정확히 소진하면서 count개로 나눠지는 경우만 성공으로 인정한다.
+ */
+function decodeFixedCount(blob: string, count: number, letterIndex: number | null): string[] | null {
+  const n = blob.length;
+  const memo = new Map<string, string[] | null>();
+
+  function helper(pos: number, idx: number): string[] | null {
+    if (idx === count) return pos === n ? [] : null;
+    const key = `${pos}:${idx}`;
+    if (memo.has(key)) return memo.get(key)!;
+
+    const isLetterSlot = idx === letterIndex;
+    for (const w of [2, 1, 3]) {
+      if (pos + w > n) continue;
+      const seg = blob.slice(pos, pos + w);
+      if (!/^\d+$/.test(seg)) continue;
+
+      let consumed = w;
+      let finalSeg = seg;
+      if (isLetterSlot && pos + w < n && /[TF]/i.test(blob[pos + w])) {
+        finalSeg = seg + blob[pos + w].toUpperCase();
+        consumed = w + 1;
+      }
+
+      const rest = helper(pos + consumed, idx + 1);
+      if (rest !== null) {
+        const result = [finalSeg, ...rest];
+        memo.set(key, result);
+        return result;
+      }
+    }
+    memo.set(key, null);
+    return null;
+  }
+
+  return helper(0, 0);
+}
+
+function pickTable(
+  blobs: string[],
+  used: Set<number>,
+  count: number,
+  letterIndex: number | null
+): string[] | null {
+  for (let i = 0; i < blobs.length; i++) {
+    if (used.has(i)) continue;
+    const decoded = decodeFixedCount(blobs[i], count, letterIndex);
+    if (decoded) {
+      used.add(i);
+      return decoded;
     }
   }
-  return results;
+  return null;
 }
 
 export async function POST(req: NextRequest) {
@@ -49,14 +123,13 @@ export async function POST(req: NextRequest) {
     const data = await pdfParse(buffer);
     const text: string = data.text || "";
 
-    const lines = findScoreLines(text);
-    const table1 = lines.find((l) => l.length === TABLE1_KEYS.length);
-    const table2 = lines.find((l) => l.length === TABLE2_KEYS.length);
-    const len15Matches = lines.filter((l) => l.length === TABLE3_KEYS.length);
-    // 내용척도와 보충척도 둘 다 15개 값이라 개수만으론 구분 안 됨 → 문서 내 등장 순서로 구분
-    // (마음사랑 결과지 기준: 내용척도표가 보충척도표보다 항상 먼저 나옴)
-    const table3 = len15Matches[0];
-    const table4 = len15Matches[1];
+    const blobs = findCandidateBlobs(text);
+    const used = new Set<number>();
+
+    const table1 = pickTable(blobs, used, TABLE1_KEYS.length, 1); // TRIN이 index 1
+    const table2 = pickTable(blobs, used, TABLE2_KEYS.length, null);
+    const table3 = pickTable(blobs, used, TABLE3_KEYS.length, null);
+    const table4 = pickTable(blobs, used, TABLE4_KEYS.length, null);
 
     const warnings: string[] = [];
     const validity: Record<string, number> = {};
