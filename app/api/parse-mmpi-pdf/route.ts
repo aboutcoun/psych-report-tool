@@ -60,6 +60,47 @@ function findCandidateBlobs(text: string): string[] {
  */
 function decodeFixedCount(blob: string, count: number, letterIndex: number | null): string[] | null {
   const n = blob.length;
+
+  // 1) 가장 흔한 경우: 전부 2자리 숫자, 문자(T/F) 없음 → 확정적으로 바로 분해.
+  //    (곧바로 백트래킹으로 넘기면 blob 어딘가의 우연한 문자를 letterIndex 자리에
+  //     잘못 끼워맞출 위험이 있어, 이 케이스는 반드시 먼저 확정적으로 처리한다)
+  if (n === count * 2 && /^\d+$/.test(blob)) {
+    const vals: string[] = [];
+    for (let i = 0; i < count; i++) vals.push(blob.slice(i * 2, i * 2 + 2));
+    return vals;
+  }
+
+  // 2) TRIN처럼 특정 슬롯에 방향 문자(T/F)가 붙어 길이가 1 늘어난 경우.
+  //    blob 안에서 유일한 문자의 위치가 letterIndex 슬롯 자리와 정확히 일치할 때만 채택
+  if (letterIndex !== null && n === count * 2 + 1) {
+    const letterMatch = blob.match(/[TF]/i);
+    if (letterMatch && letterMatch.index !== undefined) {
+      const letterPos = letterMatch.index;
+      const expectedLetterPos = letterIndex * 2 + 2; // 그 앞 슬롯들(2자리씩) + 현재 슬롯의 숫자 2자리
+      if (letterPos === expectedLetterPos) {
+        const before = blob.slice(0, letterPos);
+        const letter = blob[letterPos];
+        const after = blob.slice(letterPos + 1);
+        if (/^\d+$/.test(before) && /^\d+$/.test(after)) {
+          const vals: string[] = [];
+          let pos = 0;
+          for (let i = 0; i < count; i++) {
+            if (i === letterIndex) {
+              vals.push(blob.slice(pos, pos + 2) + letter.toUpperCase());
+              pos += 3;
+            } else {
+              vals.push(blob.slice(pos, pos + 2));
+              pos += 2;
+            }
+          }
+          if (pos === n) return vals;
+        }
+      }
+    }
+  }
+
+  // 3) 위 두 확정적 케이스에 해당하지 않는 특수한 경우(드물게 한 자리·세 자리 T점수 등)만
+  //    백트래킹으로 보조 시도
   const memo = new Map<string, string[] | null>();
 
   function helper(pos: number, idx: number): string[] | null {
