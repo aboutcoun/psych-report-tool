@@ -13,17 +13,26 @@ const PSY5_ONLY = new Set(["AGGR", "PSYC", "DISC", "NEGE", "INTR"]);
 const TABLE3_KEYS = ["ANX", "FRS", "OBS", "DEP", "HEA", "BIZ", "ANG", "CYN", "ASP", "TPA", "LSE", "SOD", "FAM", "WRK", "TRT"];
 const TABLE4_KEYS = ["A", "R", "Es", "Do", "Re", "Mt", "PK", "MDS", "Ho", "OH", "MACR", "AAS", "APS", "GM", "GF"];
 
-// "전체규준T" 로 시작하는 줄에서 숫자(또는 TRIN처럼 T/F가 붙은) 토큰들을 뽑아냄
+// "전체규준T" 라벨 뒤에 오는 숫자(또는 TRIN처럼 T/F가 붙은) 토큰들을 뽑아냄.
+// PDF 추출기에 따라 라벨과 숫자 사이, 숫자와 숫자 사이에 줄바꿈이 끼어들 수 있어
+// 줄 단위가 아니라 전체 텍스트를 공백/줄바꿈 기준으로 토큰화한 뒤 순서대로 훑는다.
 function findScoreLines(text: string): string[][] {
-  const regex = /전체규준T[ \t]+([^\n]+)/g;
+  const tokens = text.split(/\s+/).filter(Boolean);
   const results: string[][] = [];
-  let m: RegExpExecArray | null;
-  while ((m = regex.exec(text)) !== null) {
-    const tokens = m[1]
-      .trim()
-      .split(/\s+/)
-      .filter((t) => /^\d+[TF]?$/i.test(t));
-    if (tokens.length > 0) results.push(tokens);
+
+  for (let i = 0; i < tokens.length; i++) {
+    if (!tokens[i].includes("전체규준T")) continue;
+
+    const nums: string[] = [];
+    let j = i + 1;
+    while (j < tokens.length && /^\d+[TF]?$/i.test(tokens[j])) {
+      nums.push(tokens[j]);
+      j++;
+    }
+    if (nums.length > 0) {
+      results.push(nums);
+      i = j - 1; // 이미 소비한 토큰은 건너뜀
+    }
   }
   return results;
 }
@@ -105,7 +114,10 @@ export async function POST(req: NextRequest) {
     const hasAnything = table1 || table2 || table3 || table4;
     if (!hasAnything) {
       return NextResponse.json(
-        { error: "PDF에서 MMPI-2 척도 표를 찾지 못했습니다. 형식이 다른 결과지일 수 있어요. 값을 직접 입력해주세요." },
+        {
+          error: "PDF에서 MMPI-2 척도 표를 찾지 못했습니다. 형식이 다른 결과지일 수 있어요. 값을 직접 입력해주세요.",
+          debugSnippet: text.slice(0, 1500),
+        },
         { status: 422 }
       );
     }

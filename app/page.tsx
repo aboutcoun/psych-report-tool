@@ -65,6 +65,7 @@ export default function Home() {
   const [mmpiPdfLoading, setMmpiPdfLoading] = useState(false);
   const [mmpiPdfError, setMmpiPdfError] = useState<string | null>(null);
   const [mmpiPdfInfo, setMmpiPdfInfo] = useState<string | null>(null);
+  const [mmpiPdfDebugSnippet, setMmpiPdfDebugSnippet] = useState<string | null>(null);
 
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -236,6 +237,7 @@ export default function Home() {
   async function handleMmpiPdfUpload(file: File) {
     setMmpiPdfError(null);
     setMmpiPdfInfo(null);
+    setMmpiPdfDebugSnippet(null);
     setMmpiPdfLoading(true);
     try {
       const formData = new FormData();
@@ -244,6 +246,7 @@ export default function Home() {
       const data = await res.json();
       if (!res.ok) {
         setMmpiPdfError(data.error || "분석에 실패했습니다.");
+        if (data.debugSnippet) setMmpiPdfDebugSnippet(data.debugSnippet);
         return;
       }
 
@@ -472,6 +475,21 @@ export default function Home() {
                 {mmpiPdfLoading && <div className="sct-lookup-msg ok">분석 중… 잠시만 기다려주세요.</div>}
                 {mmpiPdfError && <div className="sct-lookup-msg error">{mmpiPdfError}</div>}
                 {mmpiPdfInfo && <div className="sct-lookup-msg ok">{mmpiPdfInfo}</div>}
+                {mmpiPdfDebugSnippet && (
+                  <div className="mmpi-pdf-debug">
+                    <div className="mmpi-pdf-debug-label">
+                      자동 인식이 안 되면, 아래 내용을 복사해서 개발자에게 보내주세요.
+                    </div>
+                    <textarea readOnly value={mmpiPdfDebugSnippet} />
+                    <button
+                      type="button"
+                      className="btn-secondary"
+                      onClick={() => navigator.clipboard.writeText(mmpiPdfDebugSnippet)}
+                    >
+                      복사하기
+                    </button>
+                  </div>
+                )}
               </div>
 
               <details className="section-group" open>
