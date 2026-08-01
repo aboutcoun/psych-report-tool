@@ -62,6 +62,10 @@ export default function Home() {
   const [sctListPage, setSctListPage] = useState(1);
   const SCT_LIST_PAGE_SIZE = 10;
 
+  const [mmpiPdfLoading, setMmpiPdfLoading] = useState(false);
+  const [mmpiPdfError, setMmpiPdfError] = useState<string | null>(null);
+  const [mmpiPdfInfo, setMmpiPdfInfo] = useState<string | null>(null);
+
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [progressLabel, setProgressLabel] = useState("");
@@ -226,6 +230,42 @@ export default function Home() {
       setSctLookupError(e?.message || "네트워크 오류가 발생했습니다.");
     } finally {
       setSctLookupLoading(false);
+    }
+  }
+
+  async function handleMmpiPdfUpload(file: File) {
+    setMmpiPdfError(null);
+    setMmpiPdfInfo(null);
+    setMmpiPdfLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/parse-mmpi-pdf", { method: "POST", body: formData });
+      const data = await res.json();
+      if (!res.ok) {
+        setMmpiPdfError(data.error || "분석에 실패했습니다.");
+        return;
+      }
+
+      const { validity: v, clinical: c, rc: r, psy5: p5, content: ct, supplementary: sup, trin: tr } = data.result;
+      if (v && Object.keys(v).length) setValidity((prev) => ({ ...prev, ...v }));
+      if (c && Object.keys(c).length) setClinical((prev) => ({ ...prev, ...c }));
+      if (r && Object.keys(r).length) setRc((prev) => ({ ...prev, ...r }));
+      if (p5 && Object.keys(p5).length) setPsy5((prev) => ({ ...prev, ...p5 }));
+      if (ct && Object.keys(ct).length) setContent((prev) => ({ ...prev, ...ct }));
+      if (sup && Object.keys(sup).length) setSupplementary((prev) => ({ ...prev, ...sup }));
+      if (tr) setTrinText(`${tr.value}${tr.direction}`);
+
+      const warnings: string[] = data.warnings || [];
+      setMmpiPdfInfo(
+        warnings.length > 0
+          ? `자동 입력 완료했지만 일부 확인이 필요해요: ${warnings.join(" ")}`
+          : "자동 입력이 완료됐어요. 값이 정확한지 한 번 확인해주세요."
+      );
+    } catch (e: any) {
+      setMmpiPdfError(e?.message || "네트워크 오류가 발생했습니다.");
+    } finally {
+      setMmpiPdfLoading(false);
     }
   }
 
@@ -413,6 +453,27 @@ export default function Home() {
             </p>
           ) : (
             <>
+              <div className="mmpi-pdf-box">
+                <div className="mmpi-pdf-label">MMPI-2 결과지 PDF로 자동 입력 (선택)</div>
+                <p className="mmpi-pdf-desc">
+                  검사 프로그램에서 나온 결과지 PDF(1페이지 요약표 포함)를 올리면 아래 척도 값이 자동으로 채워집니다.
+                  자동 입력 후에도 값은 꼭 한 번 확인해주세요.
+                </p>
+                <input
+                  type="file"
+                  accept="application/pdf"
+                  disabled={mmpiPdfLoading}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) handleMmpiPdfUpload(file);
+                    e.target.value = "";
+                  }}
+                />
+                {mmpiPdfLoading && <div className="sct-lookup-msg ok">분석 중… 잠시만 기다려주세요.</div>}
+                {mmpiPdfError && <div className="sct-lookup-msg error">{mmpiPdfError}</div>}
+                {mmpiPdfInfo && <div className="sct-lookup-msg ok">{mmpiPdfInfo}</div>}
+              </div>
+
               <details className="section-group" open>
                 <summary>타당도척도</summary>
                 <div className="score-grid">
