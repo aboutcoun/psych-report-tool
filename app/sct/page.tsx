@@ -9,7 +9,6 @@ function SctResponseForm() {
   const [name, setName] = useState("");
   const [gender, setGender] = useState<"남" | "여" | "">("");
   const [age, setAge] = useState("");
-  const [phone4, setPhone4] = useState("");
   const [responses, setResponses] = useState<Record<number, string>>({});
 
   useEffect(() => {
@@ -28,17 +27,13 @@ function SctResponseForm() {
       setError("이름을 입력해주세요.");
       return;
     }
-    if (!/^\d{4}$/.test(phone4)) {
-      setError("연락처 뒷 4자리를 숫자 4자리로 정확히 입력해주세요.");
-      return;
-    }
 
     setSubmitting(true);
     try {
       const res = await fetch("/api/sct-submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, gender, age, phone4, responses }),
+        body: JSON.stringify({ name, gender, age, responses }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -91,15 +86,6 @@ function SctResponseForm() {
         <div>
           <label>연령(만)</label>
           <input value={age} onChange={(e) => setAge(e.target.value)} />
-        </div>
-        <div>
-          <label>연락처 뒷 4자리</label>
-          <input
-            value={phone4}
-            maxLength={4}
-            placeholder="예: 1234"
-            onChange={(e) => setPhone4(e.target.value.replace(/[^0-9]/g, ""))}
-          />
         </div>
       </div>
 

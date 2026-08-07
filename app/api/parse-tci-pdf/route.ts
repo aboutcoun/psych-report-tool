@@ -4,17 +4,18 @@ import { extractClientInfoFromPdfText } from "@/lib/pdfClientInfo";
 
 export const runtime = "nodejs";
 
-// 마음사랑(Maumsarang) TCI-RS 결과지 "TCI-RS 프로파일" 표의 척도 라벨 (이름+약자 그대로)
-const LABELS: { key: string; group: "temperament" | "character"; texts: string[] }[] = [
-  { key: "NS", group: "temperament", texts: ["자극추구(NS)"] },
-  { key: "HA", group: "temperament", texts: ["위험회피(HA)"] },
-  { key: "RD", group: "temperament", texts: ["사회적민감성(RD)", "사회적 민감성(RD)"] },
-  { key: "P", group: "temperament", texts: ["인내력(PS)", "인내력(P)"] },
-  // "자율성+연대감(SC)"을 먼저 찾아야 "자율성(SD)"/"연대감(CO)"과 헷갈리지 않음
-  { key: "SC", group: "character", texts: ["자율성+연대감(SC)", "자율성＋연대감(SC)"] },
-  { key: "SD", group: "character", texts: ["자율성(SD)"] },
-  { key: "CO", group: "character", texts: ["연대감(CO)"] },
-  { key: "ST", group: "character", texts: ["자기초월(ST)"] },
+// 마음사랑(Maumsarang) TCI-RS 결과지 "TCI-RS 프로파일" 표의 척도 라벨.
+// PDF 추출 시 라벨 구성요소 사이에 공백/줄바꿈이 끼어들 수 있어 정규식으로 유연하게 매칭한다.
+const LABELS: { key: string; group: "temperament" | "character"; pattern: RegExp }[] = [
+  { key: "NS", group: "temperament", pattern: /자극\s*추구\s*\(\s*NS\s*\)/ },
+  { key: "HA", group: "temperament", pattern: /위험\s*회피\s*\(\s*HA\s*\)/ },
+  { key: "RD", group: "temperament", pattern: /사회적\s*민감성\s*\(\s*RD\s*\)/ },
+  { key: "P", group: "temperament", pattern: /인내력\s*\(\s*P[Ss]?\s*\)/ },
+  // "자율성+연대감(SC)"의 괄호 안이 "SC"이므로 "자율성(SD)"/"연대감(CO)"과는 절대 헷갈리지 않음
+  { key: "SC", group: "character", pattern: /자율성\s*[+＋]\s*연대감\s*\(\s*SC\s*\)/ },
+  { key: "SD", group: "character", pattern: /자율성\s*\(\s*SD\s*\)/ },
+  { key: "CO", group: "character", pattern: /연대감\s*\(\s*CO\s*\)/ },
+  { key: "ST", group: "character", pattern: /자기\s*초월\s*\(\s*ST\s*\)/ },
 ];
 
 /**
@@ -58,12 +59,21 @@ function extractThreeNumbersAfter(text: string, startIndex: number): number[] | 
       if (nums.length > 0) break; // 숫자를 얻던 중 비숫자 토큰을 만나면 그 행은 끝난 것
       continue;
     }
-    nums.push(Number(m[1]));
-    if (m[2] && /[A-Za-z가-힣]/.test(m[2])) {
+    const digits = m[1];
+    const trailing = m[2];
+
+    // 첫 토큰부터 자릿수가 유난히 길면(3개 값이 구분자 없이 다 붙어있을 가능성) 우선 분해 시도
+    if (nums.length === 0 && digits.length > 3) {
+      const decoded = splitDigitsIntoThree(digits);
+      if (decoded) return decoded;
+    }
+
+    nums.push(Number(digits));
+    if (trailing && /[A-Za-z가-힣]/.test(trailing)) {
       // 트레일링에 문자가 섞여있으면(그래프 라벨 등) 이 숫자 뭉치가 실은
       // 3개 값이 전부 붙어있는 것일 수 있으므로 자릿수 기반 재분해 시도
       if (nums.length < 3) {
-        const decoded = splitDigitsIntoThree(m[1]);
+        const decoded = splitDigitsIntoThree(digits);
         if (decoded) return decoded;
       }
       break;
@@ -90,19 +100,18 @@ export async function POST(req: NextRequest) {
     const warnings: string[] = [];
 
     for (const label of LABELS) {
-      let found = false;
-      for (const t of label.texts) {
-        const idx = text.indexOf(t);
-        if (idx === -1) continue;
-        const nums = extractThreeNumbersAfter(text, idx + t.length);
-        if (nums) {
-          if (label.group === "temperament") temperament[label.key] = nums[2];
-          else character[label.key] = nums[2];
-          found = true;
-        }
-        break;
+      const m = label.pattern.exec(text);
+      if (!m) {
+        warnings.push(`${label.key} 백분위 값을 찾지 못했습니다.`);
+        continue;
       }
-      if (!found) warnings.push(`${label.key} 백분위 값을 찾지 못했습니다.`);
+      const nums = extractThreeNumbersAfter(text, m.index + m[0].length);
+      if (nums) {
+        if (label.group === "temperament") temperament[label.key] = nums[2];
+        else character[label.key] = nums[2];
+      } else {
+        warnings.push(`${label.key} 백분위 값을 찾지 못했습니다.`);
+      }
     }
 
     const clientInfo = extractClientInfoFromPdfText(text);

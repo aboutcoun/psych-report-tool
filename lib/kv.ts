@@ -1,4 +1,5 @@
 import { Redis } from "@upstash/redis";
+import { randomUUID } from "crypto";
 
 // Upstash Redis REST API 사용 — Vercel Marketplace에서 Upstash 연동 시
 // UPSTASH_REDIS_REST_URL / UPSTASH_REDIS_REST_TOKEN 이 자동으로 주입됨
@@ -17,7 +18,13 @@ export const SCT_INDEX_KEY = "sct:index";
 export const REPORT_RECORD_TTL_SECONDS = 60 * 60 * 24 * 30;
 export const REPORT_INDEX_KEY = "report:index";
 
+// (과거 버전 호환용) 이름+연락처 뒷4자리 기반 키 — 더 이상 신규 제출에는 쓰지 않음
 export function buildSctKey(name: string, phone4: string) {
   const normalizedName = name.replace(/\s+/g, "");
   return `sct:${normalizedName}:${phone4}`;
+}
+
+// 연락처 없이도 고유하게 식별되는 키 — 신규 SCT 제출은 이 방식을 사용
+export function buildSctRandomKey() {
+  return `sct:${randomUUID()}`;
 }

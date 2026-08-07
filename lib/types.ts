@@ -45,7 +45,7 @@ export interface SctSubmission {
   name: string;
   gender: "남" | "여" | "";
   age: string;
-  phone4: string;
+  phone4?: string; // 더 이상 수집하지 않음 (과거 제출 데이터 호환용으로만 optional 유지)
   responses: Record<number, string>;
   submittedAt: string;
 }

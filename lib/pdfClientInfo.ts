@@ -10,7 +10,12 @@ export interface ExtractedClientInfo {
 export function extractClientInfoFromPdfText(text: string): ExtractedClientInfo {
   const info: ExtractedClientInfo = {};
 
-  const nameMatch = text.match(/이름\s*[:：]\s*([^\s·:：]+)/);
+  // 이름은 보통 한글 2~4자. "이름 : 강혜선개인고유번호 :"처럼 다음 항목 라벨이
+  // 공백 없이 바로 붙어 나오는 경우가 있어, 뒤에 올 수 있는 알려진 라벨들을
+  // 미리 걸러내고 그 앞까지만 한글로 잘라낸다.
+  const nameMatch = text.match(
+    /이름\s*[:：]\s*([가-힣]{2,4})(?=개인고유번호|성별|연령|나이|소속기관|규준집단|검사일|\s|$)/
+  );
   if (nameMatch) info.name = nameMatch[1].trim();
 
   const genderMatch = text.match(/성별\s*[:：]\s*(남자|여자|남|여)/);
