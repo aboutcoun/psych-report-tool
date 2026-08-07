@@ -67,6 +67,11 @@ export default function Home() {
   const [mmpiPdfInfo, setMmpiPdfInfo] = useState<string | null>(null);
   const [mmpiPdfDebugSnippet, setMmpiPdfDebugSnippet] = useState<string | null>(null);
 
+  const [tciPdfLoading, setTciPdfLoading] = useState(false);
+  const [tciPdfError, setTciPdfError] = useState<string | null>(null);
+  const [tciPdfInfo, setTciPdfInfo] = useState<string | null>(null);
+  const [tciPdfDebugSnippet, setTciPdfDebugSnippet] = useState<string | null>(null);
+
   const [showReportList, setShowReportList] = useState(false);
   const [reportList, setReportList] = useState<SavedReport[]>([]);
   const [reportListLoading, setReportListLoading] = useState(false);
@@ -206,8 +211,14 @@ export default function Home() {
 
   function applySctRecord(record: { name: string; gender: string; age: string; responses: Record<number, string>; submittedAt: string }) {
     setSctResponses(record.responses || {});
+    setClient((prev) => ({
+      ...prev,
+      name: record.name || prev.name,
+      gender: (record.gender as "남" | "여" | "") || prev.gender,
+      age: record.age || prev.age,
+    }));
     setSctLookupInfo(
-      `불러왔습니다 · ${record.name} · ${record.gender || "-"} · 만 ${record.age || "-"}세 · 제출일 ${new Date(record.submittedAt).toLocaleString("ko-KR")}`
+      `불러왔습니다 · ${record.name} · ${record.gender || "-"} · 만 ${record.age || "-"}세 · 제출일 ${new Date(record.submittedAt).toLocaleString("ko-KR")} (인적사항에도 반영했어요)`
     );
   }
 
@@ -257,7 +268,7 @@ export default function Home() {
         return;
       }
 
-      const { validity: v, clinical: c, rc: r, psy5: p5, content: ct, supplementary: sup, trin: tr } = data.result;
+      const { validity: v, clinical: c, rc: r, psy5: p5, content: ct, supplementary: sup, trin: tr, clientInfo: ci } = data.result;
       if (v && Object.keys(v).length) setValidity((prev) => ({ ...prev, ...v }));
       if (c && Object.keys(c).length) setClinical((prev) => ({ ...prev, ...c }));
       if (r && Object.keys(r).length) setRc((prev) => ({ ...prev, ...r }));
@@ -265,6 +276,13 @@ export default function Home() {
       if (ct && Object.keys(ct).length) setContent((prev) => ({ ...prev, ...ct }));
       if (sup && Object.keys(sup).length) setSupplementary((prev) => ({ ...prev, ...sup }));
       if (tr) setTrinText(tr.direction ? `${tr.value}${tr.direction}` : `${tr.value}`);
+      if (ci) {
+        setClient((prev) => ({
+          name: ci.name || prev.name,
+          gender: ci.gender || prev.gender,
+          age: ci.age || prev.age,
+        }));
+      }
 
       const warnings: string[] = data.warnings || [];
       setMmpiPdfInfo(
@@ -318,6 +336,46 @@ export default function Home() {
     setSctEnabled(record.sctEnabled);
     setSctResponses(record.sctResponses);
     setResult(record.result);
+  }
+
+  async function handleTciPdfUpload(file: File) {
+    setTciPdfError(null);
+    setTciPdfInfo(null);
+    setTciPdfDebugSnippet(null);
+    setTciPdfLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/parse-tci-pdf", { method: "POST", body: formData });
+      const data = await res.json();
+      if (!res.ok) {
+        setTciPdfError(data.error || "분석에 실패했습니다.");
+        if (data.debugSnippet) setTciPdfDebugSnippet(data.debugSnippet);
+        return;
+      }
+
+      const { temperament: t, character: c, clientInfo: ci } = data.result;
+      if (t && Object.keys(t).length) setTemperament((prev) => ({ ...prev, ...t }));
+      if (c && Object.keys(c).length) setCharacter((prev) => ({ ...prev, ...c }));
+      if (ci) {
+        setClient((prev) => ({
+          name: ci.name || prev.name,
+          gender: ci.gender || prev.gender,
+          age: ci.age || prev.age,
+        }));
+      }
+
+      const warnings: string[] = data.warnings || [];
+      setTciPdfInfo(
+        warnings.length > 0
+          ? `자동 입력 완료했지만 일부 확인이 필요해요: ${warnings.join(" ")}`
+          : "자동 입력이 완료됐어요. 값이 정확한지 한 번 확인해주세요."
+      );
+    } catch (e: any) {
+      setTciPdfError(e?.message || "네트워크 오류가 발생했습니다.");
+    } finally {
+      setTciPdfLoading(false);
+    }
   }
 
   async function toggleSctList() {
@@ -679,6 +737,42 @@ export default function Home() {
             </p>
           ) : (
             <>
+              <div className="mmpi-pdf-box">
+                <div className="mmpi-pdf-label">TCI 결과지 PDF로 자동 입력 (선택)</div>
+                <p className="mmpi-pdf-desc">
+                  검사 프로그램에서 나온 TCI-RS 결과지 PDF를 올리면 백분위 점수가 자동으로 채워집니다.
+                  자동 입력 후에도 값은 꼭 한 번 확인해주세요.
+                </p>
+                <input
+                  type="file"
+                  accept="application/pdf"
+                  disabled={tciPdfLoading}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) handleTciPdfUpload(file);
+                    e.target.value = "";
+                  }}
+                />
+                {tciPdfLoading && <div className="sct-lookup-msg ok">분석 중… 잠시만 기다려주세요.</div>}
+                {tciPdfError && <div className="sct-lookup-msg error">{tciPdfError}</div>}
+                {tciPdfInfo && <div className="sct-lookup-msg ok">{tciPdfInfo}</div>}
+                {tciPdfDebugSnippet && (
+                  <div className="mmpi-pdf-debug">
+                    <div className="mmpi-pdf-debug-label">
+                      자동 인식이 안 되면, 아래 내용을 복사해서 개발자에게 보내주세요.
+                    </div>
+                    <textarea readOnly value={tciPdfDebugSnippet} />
+                    <button
+                      type="button"
+                      className="btn-secondary"
+                      onClick={() => navigator.clipboard.writeText(tciPdfDebugSnippet)}
+                    >
+                      복사하기
+                    </button>
+                  </div>
+                )}
+              </div>
+
               <ScoreGroup title="기질척도 (백분위)" defs={TCI_TEMPERAMENT} values={temperament} onChange={makeSetter(setTemperament, temperament)} defaultOpen />
               <ScoreGroup title="성격척도 (백분위)" defs={TCI_CHARACTER} values={character} onChange={makeSetter(setCharacter, character)} defaultOpen />
             </>
@@ -753,10 +847,7 @@ export default function Home() {
                                 <button
                                   type="button"
                                   className="sct-list-apply-btn"
-                                  onClick={() => {
-                                    setClient((prev) => ({ ...prev, name: rec.name, gender: (rec.gender as any) || prev.gender, age: rec.age || prev.age }));
-                                    applySctRecord(rec);
-                                  }}
+                                  onClick={() => applySctRecord(rec)}
                                 >
                                   불러오기
                                 </button>

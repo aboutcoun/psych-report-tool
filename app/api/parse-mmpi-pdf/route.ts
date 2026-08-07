@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 // pdf-parse의 index.js에는 디버그용 코드가 섞여 있어 서버리스 환경에서 문제가 될 수 있어
 // 실제 파싱 로직만 담긴 내부 모듈을 직접 불러옴
 import pdfParse from "pdf-parse/lib/pdf-parse.js";
+import { extractClientInfoFromPdfText } from "@/lib/pdfClientInfo";
 
 export const runtime = "nodejs";
 
@@ -233,6 +234,8 @@ export async function POST(req: NextRequest) {
       warnings.push(`TRIN 값(${resolvedTrin.value})에는 방향(T/F) 표시가 없어 숫자만 입력했습니다.`);
     }
 
+    const clientInfo = extractClientInfoFromPdfText(text);
+
     const hasAnything = table1 || table2 || table3 || table4;
     if (!hasAnything) {
       return NextResponse.json(
@@ -245,7 +248,7 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({
-      result: { validity, clinical, rc, psy5, content, supplementary, trin: resolvedTrin },
+      result: { validity, clinical, rc, psy5, content, supplementary, trin: resolvedTrin, clientInfo },
       warnings,
     });
   } catch (err: any) {
