@@ -80,6 +80,18 @@ export interface ReportResult {
   counselor: CounselorSection;
 }
 
+// 생성된 통합 해석 보고서 저장본 (재출력용, 30일 후 자동 삭제)
+export interface SavedReport {
+  id: string;
+  client: ClientInfo;
+  mmpi: MmpiInput;
+  tci: TciInput;
+  sctEnabled: boolean;
+  sctResponses: Record<number, string>;
+  result: ReportResult;
+  generatedAt: string;
+}
+
 // ── 커플/부부 TCI 검사 ──────────────────────────────────────────
 export interface CouplePerson {
   name: string;

@@ -7,7 +7,7 @@ import {
   MMPI_VALIDITY, MMPI_CLINICAL, MMPI_RC, MMPI_PSY5, MMPI_CONTENT, MMPI_SUPPLEMENTARY,
   TCI_TEMPERAMENT, TCI_CHARACTER, SCT_ITEMS, ScaleDef,
 } from "@/lib/scales";
-import { ClientInfo, MmpiInput, TciInput, SctInput, ReportResult, TrinInput } from "@/lib/types";
+import { ClientInfo, MmpiInput, TciInput, SctInput, ReportResult, TrinInput, SavedReport } from "@/lib/types";
 
 const DRAFT_KEY = "psych-report-tool:draft:v1";
 
@@ -66,6 +66,13 @@ export default function Home() {
   const [mmpiPdfError, setMmpiPdfError] = useState<string | null>(null);
   const [mmpiPdfInfo, setMmpiPdfInfo] = useState<string | null>(null);
   const [mmpiPdfDebugSnippet, setMmpiPdfDebugSnippet] = useState<string | null>(null);
+
+  const [showReportList, setShowReportList] = useState(false);
+  const [reportList, setReportList] = useState<SavedReport[]>([]);
+  const [reportListLoading, setReportListLoading] = useState(false);
+  const [reportListError, setReportListError] = useState<string | null>(null);
+  const [reportListPage, setReportListPage] = useState(1);
+  const REPORT_LIST_PAGE_SIZE = 10;
 
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -272,6 +279,47 @@ export default function Home() {
     }
   }
 
+  async function toggleReportList() {
+    const next = !showReportList;
+    setShowReportList(next);
+    if (!next) return;
+
+    setReportListError(null);
+    setReportListLoading(true);
+    setReportListPage(1);
+    try {
+      const res = await fetch("/api/report-list");
+      const data = await res.json();
+      if (!res.ok) {
+        setReportListError(data.error || "목록을 불러오지 못했습니다.");
+        return;
+      }
+      setReportList(data.result || []);
+    } catch (e: any) {
+      setReportListError(e?.message || "네트워크 오류가 발생했습니다.");
+    } finally {
+      setReportListLoading(false);
+    }
+  }
+
+  function openSavedReport(record: SavedReport) {
+    setClient(record.client);
+    setMmpiEnabled(record.mmpi.enabled);
+    setValidity(record.mmpi.validity);
+    setTrinText(record.mmpi.trin.direction ? `${record.mmpi.trin.value}${record.mmpi.trin.direction}` : `${record.mmpi.trin.value}`);
+    setClinical(record.mmpi.clinical);
+    setRc(record.mmpi.rc);
+    setPsy5(record.mmpi.psy5);
+    setContent(record.mmpi.content);
+    setSupplementary(record.mmpi.supplementary);
+    setTciEnabled(record.tci.enabled);
+    setTemperament(record.tci.temperament);
+    setCharacter(record.tci.character);
+    setSctEnabled(record.sctEnabled);
+    setSctResponses(record.sctResponses);
+    setResult(record.result);
+  }
+
   async function toggleSctList() {
     const next = !showSctList;
     setShowSctList(next);
@@ -352,6 +400,15 @@ export default function Home() {
         return;
       }
       setResult(data.result);
+
+      // 재출력을 위해 서버(30일 보관)에도 저장 — 실패해도 화면 결과에는 영향 없음(best-effort)
+      fetch("/api/save-report", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ client, mmpi, tci, sctEnabled, sctResponses, result: data.result }),
+      }).catch(() => {
+        // 저장 실패해도 조용히 무시 (화면에 보이는 보고서 자체는 이미 정상 생성됨)
+      });
 
       // 보고서 생성이 끝나면 다음 상담사가 새로 시작할 수 있도록 임시저장 데이터를 지움
       // (인쇄/출력은 이 시점 이후 화면에서 이뤄지므로, 생성 완료를 "이번 건 작업 끝"으로 봄)
@@ -440,6 +497,83 @@ export default function Home() {
             SCT
           </button>
         </div>
+      </div>
+
+      <div className="report-list-box no-print">
+        <button type="button" className="sct-list-toggle-btn" onClick={toggleReportList}>
+          {showReportList ? "저장된 보고서 목록 닫기 ▲" : "저장된 보고서 목록 보기 (최근 30일) ▼"}
+        </button>
+
+        {showReportList && (
+          <div className="sct-list-box">
+            {reportListLoading && <p className="sct-list-msg">불러오는 중…</p>}
+            {reportListError && <div className="sct-lookup-msg error">{reportListError}</div>}
+            {!reportListLoading && !reportListError && reportList.length === 0 && (
+              <p className="sct-list-msg">최근 30일 내 생성된 보고서가 없습니다.</p>
+            )}
+            {!reportListLoading && reportList.length > 0 && (
+              <>
+              <table className="sct-list-table">
+                <thead>
+                  <tr>
+                    <th>이름</th>
+                    <th>성별</th>
+                    <th>연령</th>
+                    <th>실시 검사</th>
+                    <th>생성일시</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {reportList
+                    .slice((reportListPage - 1) * REPORT_LIST_PAGE_SIZE, reportListPage * REPORT_LIST_PAGE_SIZE)
+                    .map((rec) => {
+                      const tests = [rec.mmpi.enabled && "MMPI-2", rec.tci.enabled && "TCI", rec.sctEnabled && "SCT"].filter(Boolean).join(", ");
+                      return (
+                        <tr key={rec.id}>
+                          <td>{rec.client.name || "-"}</td>
+                          <td>{rec.client.gender || "-"}</td>
+                          <td>{rec.client.age ? `만 ${rec.client.age}세` : "-"}</td>
+                          <td>{tests || "-"}</td>
+                          <td>{new Date(rec.generatedAt).toLocaleString("ko-KR")}</td>
+                          <td>
+                            <button type="button" className="sct-list-apply-btn" onClick={() => openSavedReport(rec)}>
+                              열기
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                </tbody>
+              </table>
+
+              {reportList.length > REPORT_LIST_PAGE_SIZE && (
+                <div className="sct-list-pagination">
+                  <button
+                    type="button"
+                    className="sct-list-page-btn"
+                    onClick={() => setReportListPage((p) => Math.max(1, p - 1))}
+                    disabled={reportListPage === 1}
+                  >
+                    이전
+                  </button>
+                  <span className="sct-list-page-info">
+                    {reportListPage} / {Math.ceil(reportList.length / REPORT_LIST_PAGE_SIZE)} 페이지 (총 {reportList.length}건)
+                  </span>
+                  <button
+                    type="button"
+                    className="sct-list-page-btn"
+                    onClick={() => setReportListPage((p) => Math.min(Math.ceil(reportList.length / REPORT_LIST_PAGE_SIZE), p + 1))}
+                    disabled={reportListPage >= Math.ceil(reportList.length / REPORT_LIST_PAGE_SIZE)}
+                  >
+                    다음
+                  </button>
+                </div>
+              )}
+              </>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="tabs no-print">
