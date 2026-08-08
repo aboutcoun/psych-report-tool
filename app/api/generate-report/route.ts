@@ -18,6 +18,50 @@ function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+// Gemini가 문법적으로는 올바른 JSON을 돌려주더라도, 특정 입력(긴 SCT 응답,
+// 민감한 내용 등)에서는 기대한 필드가 통째로 빠진 채로 올 수 있음.
+// 이 경우 프론트엔드에서 undefined 속성 접근으로 화면이 통째로 크래시남.
+// → 서버에서 최소한의 필수 필드가 채워져 있는지 확인하고, 아니면
+//   에러로 응답해서 프론트엔드가 "다시 시도" 메시지를 보여줄 수 있게 함.
+function validateReportResult(parsed: any, body: ReportRequestBody): string | null {
+  if (!parsed || typeof parsed !== "object") {
+    return "응답이 객체 형식이 아닙니다.";
+  }
+
+  for (const key of ["client", "counselor"] as const) {
+    const section = parsed[key];
+    if (!section || typeof section !== "object") {
+      return `"${key}" 섹션이 비어있습니다.`;
+    }
+    if (typeof section.integration_recommendations !== "string" || !section.integration_recommendations.trim()) {
+      return `"${key}.integration_recommendations" 값이 비어있습니다.`;
+    }
+    if (body.mmpi?.enabled) {
+      if (typeof section.validity_summary !== "string" || !section.validity_summary.trim()) {
+        return `"${key}.validity_summary" 값이 비어있습니다.`;
+      }
+      if (typeof section.symptom_summary !== "string" || !section.symptom_summary.trim()) {
+        return `"${key}.symptom_summary" 값이 비어있습니다.`;
+      }
+    }
+    if (body.tci?.enabled) {
+      if (typeof section.maturity_summary !== "string" || !section.maturity_summary.trim()) {
+        return `"${key}.maturity_summary" 값이 비어있습니다.`;
+      }
+      if (typeof section.temperament_character_summary !== "string" || !section.temperament_character_summary.trim()) {
+        return `"${key}.temperament_character_summary" 값이 비어있습니다.`;
+      }
+    }
+  }
+
+  const counselor = parsed.counselor;
+  if (!Array.isArray(counselor.counselor_notes) || counselor.counselor_notes.length === 0) {
+    return `"counselor.counselor_notes" 값이 비어있습니다.`;
+  }
+
+  return null;
+}
+
 async function callGeminiWithRetry(apiKey: string, prompt: string) {
   let lastErrorText = "";
 
@@ -30,6 +74,10 @@ async function callGeminiWithRetry(apiKey: string, prompt: string) {
         generationConfig: {
           temperature: 0.4,
           responseMimeType: "application/json",
+          maxOutputTokens: 16384,
+          // 응답 형식이 명확하지 않던 채로 기본값에 맡기면, SCT 응답이 길거나
+          // 검사를 여러 개 함께 실시해 출력이 길어지는 케이스에서 중간에
+          // 잘려 JSON이 불완전해질 수 있어 여유 있게 상향
         },
       }),
     });
@@ -84,6 +132,17 @@ export async function POST(req: NextRequest) {
     } catch (e) {
       return NextResponse.json(
         { error: "Gemini 응답을 JSON으로 파싱하지 못했습니다.", raw: text },
+        { status: 502 }
+      );
+    }
+
+    const validationError = validateReportResult(parsed, body);
+    if (validationError) {
+      return NextResponse.json(
+        {
+          error: `AI 응답에 필요한 내용이 일부 누락되었습니다 (${validationError}). 잠시 후 다시 시도해주세요.`,
+          raw: parsed,
+        },
         { status: 502 }
       );
     }

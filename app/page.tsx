@@ -424,6 +424,13 @@ export default function Home() {
         setError(data.error || "보고서 생성에 실패했습니다.");
         return;
       }
+      if (!data.result?.client || !data.result?.counselor) {
+        // 서버 검증을 통과했더라도 혹시 모를 형식 이상에 대비한 이중 방어.
+        // 여기서 걸러주지 않으면 리포트 화면에서 undefined 속성 접근으로
+        // 화면 전체가 하얗게 크래시함
+        setError("보고서 생성 결과 형식이 올바르지 않습니다. 잠시 후 다시 시도해주세요.");
+        return;
+      }
       setResult(data.result);
 
       // 재출력을 위해 서버(30일 보관)에도 저장 — 실패해도 화면 결과에는 영향 없음(best-effort)
