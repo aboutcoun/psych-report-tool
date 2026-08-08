@@ -208,8 +208,9 @@ export default function ReportView({
   const integrationPageIndex = allPages.length - 1;
   const isLastPage = (i: number) => i === integrationPageIndex;
 
-  // SCT를 MMPI/TCI와 함께 실시한 경우에만: 상담자용 전용 부록 페이지로 별도 표시
-  const showSctAppendix = !sctOnly && isCounselor && sctEnabled && sctDomainGroups.length > 0;
+  // SCT를 MMPI/TCI와 함께 실시한 경우: 내담자용/상담자용 모두 부록 페이지로 표시
+  // (내담자용은 영역별 분류만, 상담자용은 분류+해석까지 — sctDomainGroups 자체가 이미 그렇게 구성됨)
+  const showSctAppendix = !sctOnly && sctEnabled && sctDomainGroups.length > 0;
   const totalPages = allPages.length + (showSctAppendix ? 1 : 0);
 
   return (
@@ -306,7 +307,7 @@ export default function ReportView({
           <header className="report-masthead">
             <h2>심리검사 통합 해석 보고서</h2>
             <div className="meta">
-              {client.name || "비공개"} · {client.gender || "-"} · 만 {client.age || "-"}세 · 상담자용
+              {client.name || "비공개"} · {client.gender || "-"} · 만 {client.age || "-"}세 · {isCounselor ? "상담자용" : "내담자용"}
             </div>
           </header>
 
@@ -315,7 +316,11 @@ export default function ReportView({
               <div className="report-section-title">SCT 영역별 응답</div>
               <SctDomainGroups
                 groups={sctDomainGroups}
-                intro="아래는 SCT 문항을 주제 영역별로 묶어 정리한 것입니다. 특이사항이 뚜렷한 영역에는 간단한 해석을 함께 표시했습니다."
+                intro={
+                  isCounselor
+                    ? "아래는 SCT 문항을 주제 영역별로 묶어 정리한 것입니다. 특이사항이 뚜렷한 영역에는 간단한 해석을 함께 표시했습니다."
+                    : "아래는 작성하신 문장완성검사 응답을 주제 영역별로 묶어 정리한 것입니다."
+                }
               />
             </div>
           </div>
