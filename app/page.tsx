@@ -302,6 +302,13 @@ export default function Home() {
     setCharacter(record.tci.character);
     setSctEnabled(record.sctEnabled);
     setSctResponses(record.sctResponses);
+    if (!record.result?.client || !record.result?.counselor) {
+      // 수정 전에 생성되어 이미 서버에 저장된 옛 데이터는 client/counselor
+      // 필드가 비어있을 수 있음 — 그대로 화면에 넘기면 크래시남
+      setError("이 저장된 보고서는 형식이 올바르지 않아 불러올 수 없습니다. 입력값은 채워졌으니, 새로 '통합 해석 보고서 생성'을 눌러 다시 만들어주세요.");
+      setResult(null);
+      return;
+    }
     setResult(record.result);
   }
 
