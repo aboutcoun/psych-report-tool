@@ -310,29 +310,45 @@ export default function Home() {
   }
 
   function openSavedReport(record: SavedReport) {
-    setClient(record.client);
-    setMmpiEnabled(record.mmpi.enabled);
-    setValidity(record.mmpi.validity);
-    setTrinText(record.mmpi.trin.direction ? `${record.mmpi.trin.value}${record.mmpi.trin.direction}` : `${record.mmpi.trin.value}`);
-    setClinical(record.mmpi.clinical);
-    setRc(record.mmpi.rc);
-    setPsy5(record.mmpi.psy5);
-    setContent(record.mmpi.content);
-    setSupplementary(record.mmpi.supplementary);
-    setTciEnabled(record.tci.enabled);
-    setTemperament(record.tci.temperament);
-    setCharacter(record.tci.character);
-    setSctEnabled(record.sctEnabled);
-    setSctResponses(record.sctResponses);
-    if (!isUsableReportResult(record.result, record.mmpi.enabled, record.tci.enabled)) {
-      // 수정 전에 생성되어 이미 서버에 저장된 옛 데이터는 client/counselor
-      // 자체는 있어도 그 안의 텍스트 필드가 비어있을 수 있음 — 그대로
-      // 화면에 넘기면 크래시하거나, 제목만 있고 본문이 텅 빈 리포트가 뜸
-      setError("이 저장된 보고서는 형식이 올바르지 않아 불러올 수 없습니다. 입력값은 채워졌으니, 새로 '통합 해석 보고서 생성'을 눌러 다시 만들어주세요.");
+    try {
+      setClient(record.client);
+      setMmpiEnabled(record.mmpi?.enabled ?? false);
+      setValidity(record.mmpi?.validity ?? validity);
+      setTrinText(
+        record.mmpi?.trin
+          ? record.mmpi.trin.direction
+            ? `${record.mmpi.trin.value}${record.mmpi.trin.direction}`
+            : `${record.mmpi.trin.value}`
+          : trinText
+      );
+      setClinical(record.mmpi?.clinical ?? clinical);
+      setRc(record.mmpi?.rc ?? rc);
+      setPsy5(record.mmpi?.psy5 ?? psy5);
+      setContent(record.mmpi?.content ?? content);
+      setSupplementary(record.mmpi?.supplementary ?? supplementary);
+      setTciEnabled(record.tci?.enabled ?? false);
+      setTemperament(record.tci?.temperament ?? temperament);
+      setCharacter(record.tci?.character ?? character);
+      setSctEnabled(record.sctEnabled ?? false);
+      setSctResponses(record.sctResponses ?? {});
+
+      if (!isUsableReportResult(record.result, record.mmpi?.enabled ?? false, record.tci?.enabled ?? false)) {
+        // 수정 전에 생성되어 이미 서버에 저장된 옛 데이터는 client/counselor
+        // 자체는 있어도 그 안의 텍스트 필드가 비어있을 수 있음 — 그대로
+        // 화면에 넘기면 크래시하거나, 제목만 있고 본문이 텅 빈 리포트가 뜸
+        setError("이 저장된 보고서는 형식이 올바르지 않아 불러올 수 없습니다. 입력값은 채워졌으니, 새로 '통합 해석 보고서 생성'을 눌러 다시 만들어주세요.");
+        setResult(null);
+        return;
+      }
+      setResult(record.result);
+    } catch (e: any) {
+      // record 안의 예상치 못한 데이터 구조(예: mmpi/tci 필드 누락)로 인해
+      // 위 과정 중간에 조용히 멈추는 것을 방지 — 무슨 문제든 최소한
+      // 화면에 원인이 뜨도록 함
+      console.error("openSavedReport 실패:", e);
+      setError(`저장된 보고서를 불러오는 중 오류가 발생했습니다: ${e?.message || "알 수 없는 오류"}`);
       setResult(null);
-      return;
     }
-    setResult(record.result);
   }
 
   async function handleTciPdfUpload(file: File) {
