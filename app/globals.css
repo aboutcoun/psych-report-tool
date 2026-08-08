@@ -790,9 +790,28 @@ html, body {
   .report-page + .report-page {
     page-break-before: always;
   }
-  /* 그래프+해당 문단은 최대한 한 페이지 안에서 끊기지 않도록 (강제는 아님) */
-  .chart-wrap, .report-body-text {
+  /* .report-block 은 "SCT 영역별 응답 전체", "상담자 참고사항 전체"처럼
+     한 페이지보다 훨씬 큰 덩어리를 통째로 감싸는 경우가 많음.
+     여기에 break-inside:avoid를 걸면, 크롬이 "안 쪼개기"를 지키려다
+     못 지키니까 블록 전체를 다음 페이지로 통째로 밀어버리고 그 자리에
+     큰 빈 공간만 남기는 문제가 있었음 → 해제하고, 실제로 한 페이지
+     안에 들어갈 만한 "작은 단위"에만 avoid를 건다 */
+  .report-block {
+    page-break-inside: auto;
+  }
+  .chart-wrap, .report-body-text, .sct-domain-group, .counselor-point, .next-steps-row {
     page-break-inside: avoid;
+  }
+  .counselor-points {
+    display: block;
+    /* flex → block: 상담자 참고사항 항목들이 페이지 경계를 넘어갈 때
+       flex 컨테이너의 인쇄 분할 버그로 항목이 잘리거나 빈 공간이
+       생기는 문제 방지 (개별 항목은 위 .counselor-point avoid로 보호) */
+  }
+  .counselor-point {
+    margin-bottom: 12px;
+    /* 인쇄 시 display:block으로 바뀌며 flex의 gap이 더는 적용되지
+       않으므로 동일한 간격을 margin으로 대체 */
   }
   body { background: #fff; }
 }
