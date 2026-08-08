@@ -17,6 +17,28 @@ function initScores(defs: ScaleDef[], defaultVal = 50): Record<string, number> {
   return out;
 }
 
+// 서버(route.ts)의 validateReportResult와 동일한 기준으로, 저장된 리포트를
+// 불러올 때도 핵심 텍스트 필드가 실제로 채워져 있는지 확인.
+// 객체 존재 여부만 얕게 보면, 필드가 빈 문자열인 "속은 텅 빈" 리포트를
+// 걸러내지 못해 화면만 넘어가고 아무 내용도 안 보이는 것처럼 보임.
+function isUsableReportResult(result: ReportResult | undefined | null, mmpiEnabled: boolean, tciEnabled: boolean): boolean {
+  if (!result) return false;
+  for (const section of [result.client, result.counselor] as any[]) {
+    if (!section || typeof section.integration_recommendations !== "string" || !section.integration_recommendations.trim()) {
+      return false;
+    }
+    if (mmpiEnabled && (!section.validity_summary?.trim() || !section.symptom_summary?.trim())) {
+      return false;
+    }
+    if (tciEnabled && (!section.maturity_summary?.trim() || !section.temperament_character_summary?.trim())) {
+      return false;
+    }
+  }
+  const counselorNotes = (result.counselor as any)?.counselor_notes;
+  if (!Array.isArray(counselorNotes) || counselorNotes.length === 0) return false;
+  return true;
+}
+
 // "66t" / "55F" 또는 문자 없이 "66" 만도 허용해서 { value, direction } 으로 파싱
 function parseTrin(raw: string): TrinInput | null {
   const m = raw.trim().match(/^(\d{1,3})\s*([tTfF])?$/);
@@ -302,9 +324,10 @@ export default function Home() {
     setCharacter(record.tci.character);
     setSctEnabled(record.sctEnabled);
     setSctResponses(record.sctResponses);
-    if (!record.result?.client || !record.result?.counselor) {
+    if (!isUsableReportResult(record.result, record.mmpi.enabled, record.tci.enabled)) {
       // 수정 전에 생성되어 이미 서버에 저장된 옛 데이터는 client/counselor
-      // 필드가 비어있을 수 있음 — 그대로 화면에 넘기면 크래시남
+      // 자체는 있어도 그 안의 텍스트 필드가 비어있을 수 있음 — 그대로
+      // 화면에 넘기면 크래시하거나, 제목만 있고 본문이 텅 빈 리포트가 뜸
       setError("이 저장된 보고서는 형식이 올바르지 않아 불러올 수 없습니다. 입력값은 채워졌으니, 새로 '통합 해석 보고서 생성'을 눌러 다시 만들어주세요.");
       setResult(null);
       return;
@@ -431,10 +454,10 @@ export default function Home() {
         setError(data.error || "보고서 생성에 실패했습니다.");
         return;
       }
-      if (!data.result?.client || !data.result?.counselor) {
+      if (!isUsableReportResult(data.result, mmpiEnabled, tciEnabled)) {
         // 서버 검증을 통과했더라도 혹시 모를 형식 이상에 대비한 이중 방어.
         // 여기서 걸러주지 않으면 리포트 화면에서 undefined 속성 접근으로
-        // 화면 전체가 하얗게 크래시함
+        // 화면 전체가 하얗게 크래시하거나, 본문이 텅 빈 채로 표시됨
         setError("보고서 생성 결과 형식이 올바르지 않습니다. 잠시 후 다시 시도해주세요.");
         return;
       }
