@@ -761,6 +761,10 @@ html, body {
        여백 없이 시작되어 상단이 잘린 것처럼 보이는 문제가 있었음 */
   }
   .no-print { display: none !important; }
+  .page-footer {
+    display: none;
+    /* 인쇄/PDF 출력 시 하단 꼬리말(브랜드명 + 페이지 번호) 숨김 */
+  }
   .report-page {
     box-shadow: none;
     border: none;
