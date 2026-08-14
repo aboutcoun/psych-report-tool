@@ -1,9 +1,18 @@
 import { ReportRequestBody } from "./types";
-import { SCT_ITEMS, SCT_DOMAINS } from "./scales";
+import { SCT_ITEMS, SCT_DOMAINS, TCI_TEMPERAMENT_KO, TCI_CHARACTER_KO } from "./scales";
 
 function formatScores(scores: Record<string, number>): string {
   return Object.entries(scores)
     .map(([k, v]) => `${k}=${v}`)
+    .join(", ");
+}
+
+// TCI는 약어(HA, RD 등)만 넘기면 AI가 자체 지식으로 잘못 직역하는 경우가 있어
+// (예: HA를 "해악회피"로 오역 — 정확한 명칭은 "위험회피")
+// 반드시 정확한 한글 척도명을 약어와 함께 명시해서 전달한다.
+function formatTciScores(scores: Record<string, number>, koLabels: Record<string, string>): string {
+  return Object.entries(scores)
+    .map(([k, v]) => `${k}(${koLabels[k] ?? k})=${v}`)
     .join(", ");
 }
 
@@ -73,8 +82,9 @@ export function buildPrompt(body: ReportRequestBody): string {
   }
   if (tci.enabled) {
     dataBlocks.push(`## TCI 결과 (백분위점수, 50=평균)
-- 기질척도: ${formatScores(tci.temperament)}
-- 성격척도: ${formatScores(tci.character)}`);
+- 기질척도: ${formatTciScores(tci.temperament, TCI_TEMPERAMENT_KO)}
+- 성격척도: ${formatTciScores(tci.character, TCI_CHARACTER_KO)}
+- 위 괄호 안 한글 명칭이 각 척도의 정확한 공식 명칭입니다. 보고서 본문에서 이 척도들을 언급할 때는 반드시 위에 표기된 한글 명칭 그대로만 사용하십시오(자극추구 / 위험회피 / 사회적 민감성 / 인내력 / 자율성 / 연대감 / 자기초월). 특히 "위험회피"를 "해악회피"처럼 다른 표현으로 임의로 바꾸거나 직역하지 마십시오.`);
   }
   dataBlocks.push(`## SCT (문장완성검사) 응답 (영역별로 그룹핑됨)\n${formatSctByDomain(sct)}`);
 
